@@ -28,3 +28,20 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Flutter / Dart (frontend_flutter)
+**/frontend_flutter/build/
+**/frontend_flutter/.dart_tool/
+**/frontend_flutter/.idea/
+**/frontend_flutter/.metadata
+**/frontend_flutter/*.iml
+**/frontend_flutter/.flutter-plugins
+**/frontend_flutter/.flutter-plugins-dependencies
+**/frontend_flutter/.packages
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.metadata
+*.iml
