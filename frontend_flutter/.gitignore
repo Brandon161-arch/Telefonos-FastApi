@@ -4,16 +4,9 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+.metadata
 
-# Platform generated
-frontend_flutter/web/
-frontend_flutter/android/
-frontend_flutter/ios/
-frontend_flutter/linux/
-frontend_flutter/macos/
-frontend_flutter/windows/
-
-# Misc
+# IDE
 *.iml
 .idea/
 .vscode/

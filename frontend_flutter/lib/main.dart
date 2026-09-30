@@ -62,7 +62,7 @@ class ElectroPhoneApp extends StatelessWidget {
         colorScheme: scheme,
         scaffoldBackgroundColor: const Color(0xFF0B0D17),
         appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF101322), centerTitle: false),
-        cardTheme: CardTheme(color: const Color(0xFF15182A), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+        cardTheme: CardThemeData(color: const Color(0xFF15182A), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: const Color(0xFF15182A),

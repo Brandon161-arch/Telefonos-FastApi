@@ -72,7 +72,7 @@ class _CartScreenState extends State<CartScreen> {
                     _field(_city, 'Ciudad'),
                     _field(_postal, 'Código postal / barrio', required: false),
                     DropdownButtonFormField<String>(
-                      value: _payment,
+                      initialValue: _payment,
                       decoration: const InputDecoration(labelText: 'Método de pago'),
                       items: const [
                         DropdownMenuItem(value: 'pse', child: Text('PSE')),
