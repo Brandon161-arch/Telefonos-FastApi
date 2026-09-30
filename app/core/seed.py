@@ -21,6 +21,13 @@ def seed_database(db: Session) -> None:
         db.add(admin)
         db.commit()
         db.refresh(admin)
+    elif not admin.is_verified:
+        # Asegura que el admin existente quede verificado (para poder iniciar sesión)
+        admin.is_verified = True
+        admin.verification_token = None
+        admin.verification_token_expires = None
+        db.commit()
+        db.refresh(admin)
 
     # If brands don't exist, create them
     if db.query(Brand).count() == 0:
