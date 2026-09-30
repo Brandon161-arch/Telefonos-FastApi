@@ -26,7 +26,7 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
     items_to_create = []
 
     for item_in in order_in.items:
-        phone = db.query(Phone).filter(Phone.id == item_in.phone_id).first()
+        phone = db.query(Phone).filter(Phone.id == item_in.phone_id).with_for_update().first()
         if not phone:
             raise ValueError(f"El teléfono con ID {item_in.phone_id} no existe")
         if phone.stock < item_in.quantity:
@@ -51,7 +51,8 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
         items_to_create.append(order_item)
 
     shipping_cost = 0.0 if subtotal > 1200000 else 20000.0 # Envío gratis para compras mayores a $1.200.000 COP
-    total = subtotal + shipping_cost
+    tax = round((subtotal + shipping_cost) * 0.19, 2)  # IVA 19% Colombia
+    total = subtotal + shipping_cost + tax
 
     # 2. Create order record
     db_order = Order(
@@ -65,6 +66,7 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
         postal_code=order_in.postal_code,
         subtotal=subtotal,
         shipping_cost=shipping_cost,
+        tax=tax,
         discount_amount=0.0,
         total=total,
         payment_method=order_in.payment_method,

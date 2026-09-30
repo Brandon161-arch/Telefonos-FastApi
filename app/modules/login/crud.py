@@ -3,7 +3,7 @@ from typing import Optional, List
 import secrets
 from sqlalchemy.orm import Session
 from app.modules.login.models import User
-from app.modules.login.schemas import UserCreate
+from app.modules.login.schemas import UserCreate, UserUpdate
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 
@@ -55,3 +55,15 @@ def regenerate_verification_token(db: Session, user: User) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
+    update_data = user_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(user, field, value)
+    db.commit()
+    db.refresh(user)
+    return user
+
+def delete_user(db: Session, user: User) -> None:
+    db.delete(user)
+    db.commit()

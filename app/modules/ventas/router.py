@@ -33,6 +33,23 @@ def track_order(order_number: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Orden no encontrada")
     return order
 
+@router.get("/{order_id}", response_model=OrderResponse)
+def get_order_detail(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Obtener el detalle de una orden (el dueño o un administrador)."""
+    order = get_order(db, order_id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    if order.user_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para ver esta orden"
+        )
+    return order
+
 @router.get("/my-orders", response_model=List[OrderResponse])
 def get_user_orders(
     db: Session = Depends(get_db),

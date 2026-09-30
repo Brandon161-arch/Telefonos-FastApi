@@ -40,6 +40,7 @@ class OrderResponse(BaseModel):
     postal_code: Optional[str] = None
     subtotal: float
     shipping_cost: float
+    tax: float = 0.0
     discount_amount: float
     total: float
     payment_method: str

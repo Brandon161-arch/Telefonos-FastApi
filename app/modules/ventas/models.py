@@ -21,6 +21,7 @@ class Order(Base):
     # Financials & Status
     subtotal = Column(Float, nullable=False)
     shipping_cost = Column(Float, default=0.0)
+    tax = Column(Float, default=0.0)
     discount_amount = Column(Float, default=0.0)
     total = Column(Float, nullable=False)
 
