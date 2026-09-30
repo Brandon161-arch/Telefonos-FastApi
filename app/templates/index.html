@@ -6,11 +6,11 @@
     <div class="hero-content">
         <div>
             <div class="hero-tag">
-                <span>⚡</span> Ofertas de Temporada 2026
+                <span>⚡</span> Ofertas de Temporada 2026 en Colombia
             </div>
             <h1>Los Últimos <span class="highlight">Smartphones</span> al Mejor Precio</h1>
             <p>
-                Descubre lo último en tecnología móvil: iPhone 15 Pro Max, Galaxy S24 Ultra, Xiaomi 14 y más con procesadores de última generación y cámaras profesionales.
+                Descubre lo último en tecnología móvil: iPhone 15 Pro Max, Galaxy S24 Ultra, Xiaomi 14 y más con procesadores de última generación, cámaras profesionales y garantía en Colombia.
             </p>
             <div class="hero-stats">
                 <div class="stat-item">
@@ -23,7 +23,7 @@
                 </div>
                 <div class="stat-item">
                     <h4>Envío Gratis</h4>
-                    <p>En pedidos > $300</p>
+                    <p>En pedidos > $ 1.200.000</p>
                 </div>
             </div>
         </div>
@@ -31,9 +31,9 @@
         <div class="hero-banner-card glass">
             <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80" alt="iPhone 15 Pro Max">
             <div style="margin-top: 1rem;">
-                <div style="font-size: 0.85rem; color: var(--accent); font-weight: 700;">TOP VENTAS</div>
-                <h3 style="font-size: 1.3rem; color: #fff; margin: 0.2rem 0;">iPhone 15 Pro Max</h3>
-                <span style="font-size: 1.4rem; font-weight: 800; color: #fff;">$1,129.00</span>
+                <div style="font-size: 0.85rem; color: var(--accent); font-weight: 700;">TOP VENTAS EN COLOMBIA</div>
+                <h3 style="font-size: 1.3rem; color: #fff; margin: 0.2rem 0;">iPhone 15 Pro Max 256GB</h3>
+                <span style="font-size: 1.4rem; font-weight: 800; color: #fff;">$ 4.999.900</span>
             </div>
         </div>
     </div>
@@ -66,14 +66,14 @@
             <button id="btn-reset-filters" class="btn-reset-filters" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.78rem;">Limpiar</button>
         </div>
 
-        <!-- Price Range Filter -->
+        <!-- Price Range Filter (COP) -->
         <div class="filter-group">
             <div class="filter-title">Precio Máximo</div>
             <div class="price-slider-wrap">
-                <input type="range" id="price-range-slider" min="300" max="1500" step="50" value="1500">
+                <input type="range" id="price-range-slider" min="1000000" max="7000000" step="100000" value="7000000">
                 <div class="price-values">
-                    <span>$300</span>
-                    <span id="price-range-val" style="color: var(--accent); font-weight: 700;">$1500</span>
+                    <span>$ 1.000.000</span>
+                    <span id="price-range-val" style="color: var(--accent); font-weight: 700;">$ 7.000.000</span>
                 </div>
             </div>
         </div>
@@ -160,49 +160,49 @@
     <div class="modal-box glass" style="max-width: 600px; padding: 2rem;">
         <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
         <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem;">Finalizar Compra</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Ingresa tus datos para procesar el envío de tus celulares.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Ingresa tus datos para procesar el envío de tus celulares a cualquier ciudad de Colombia.</p>
 
         <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)">
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <div>
                     <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Nombre Completo</label>
-                    <input type="text" name="customer_name" required placeholder="Ej: Carlos Mendoza" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                    <input type="text" name="customer_name" required placeholder="Ej: Juan Sebastián Ramírez" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div>
                         <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Correo Electrónico</label>
-                        <input type="email" name="customer_email" required placeholder="carlos@ejemplo.com" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                        <input type="email" name="customer_email" required placeholder="juan@ejemplo.com" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Teléfono / Móvil</label>
-                        <input type="tel" name="customer_phone" required placeholder="+52 55 9876 5432" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Teléfono Móvil (Celular)</label>
+                        <input type="tel" name="customer_phone" required placeholder="+57 310 123 4567" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
                     </div>
                 </div>
 
                 <div>
                     <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Dirección de Entrega</label>
-                    <input type="text" name="shipping_address" required placeholder="Calle, Número, Colonia" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                    <input type="text" name="shipping_address" required placeholder="Carrera 15 # 85-30, Apto 402" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ciudad</label>
-                        <input type="text" name="city" required placeholder="Ciudad de México" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ciudad / Municipio</label>
+                        <input type="text" name="city" required placeholder="Bogotá D.C., Medellín, Cali..." style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Código Postal</label>
-                        <input type="text" name="postal_code" placeholder="06700" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Código Postal / Barrio</label>
+                        <input type="text" name="postal_code" placeholder="110221 / Chapinero" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
                     </div>
                 </div>
 
                 <div>
                     <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Método de Pago</label>
                     <select name="payment_method" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
-                        <option value="credit_card">💳 Tarjeta de Crédito / Débito (Visa / Mastercard)</option>
-                        <option value="paypal">🅿️ PayPal</option>
-                        <option value="transfer">🏦 Transferencia Bancaria (SPEI)</option>
-                        <option value="cash_on_delivery">💵 Pago Contra Entrega</option>
+                        <option value="pse">🏦 PSE (Transferencia Bancaria en Línea)</option>
+                        <option value="nequi">📱 Nequi / Daviplata</option>
+                        <option value="credit_card">💳 Tarjeta de Crédito / Débito (Visa / Mastercard / Amex)</option>
+                        <option value="cash_on_delivery">💵 Pago Contra Entrega (Efectivo)</option>
                     </select>
                 </div>
 

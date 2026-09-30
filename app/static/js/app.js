@@ -1,5 +1,5 @@
 /**
- * ElectroPhone - Fast API Virtual Store Client Script
+ * ElectroPhone Colombia - Fast API Virtual Store Client Script (COP Currency)
  */
 
 let cart = JSON.parse(localStorage.getItem('electrophone_cart')) || [];
@@ -13,6 +13,12 @@ let activeFilters = {
     search: '',
     sort_by: 'created_at'
 };
+
+// Format currency in Colombian Pesos ($ 5.499.900)
+function formatCOP(amount) {
+    if (amount === null || amount === undefined) return '$0';
+    return '$ ' + Math.round(amount).toLocaleString('es-CO');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initCart();
@@ -148,9 +154,9 @@ function updateCartUI() {
                 <small>Explora nuestro catálogo y agrega los mejores smartphones</small>
             </div>
         `;
-        if (subtotalEl) subtotalEl.innerText = '$0.00';
-        if (shippingEl) shippingEl.innerText = '$0.00';
-        if (totalEl) totalEl.innerText = '$0.00';
+        if (subtotalEl) subtotalEl.innerText = '$ 0';
+        if (shippingEl) shippingEl.innerText = '$ 0';
+        if (totalEl) totalEl.innerText = '$ 0';
         if (checkoutBtn) checkoutBtn.disabled = true;
         return;
     }
@@ -167,7 +173,7 @@ function updateCartUI() {
                 <div class="cart-item-info">
                     <div class="cart-item-title">${item.name}</div>
                     <div class="cart-item-meta">${item.color || ''} • ${item.storage || ''}</div>
-                    <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                    <div class="cart-item-price">${formatCOP(item.price)}</div>
                 </div>
                 <div class="cart-qty-ctrl">
                     <button class="cart-qty-btn" onclick="updateCartQuantity(${item.phone_id}, -1)">-</button>
@@ -179,12 +185,12 @@ function updateCartUI() {
         `;
     }).join('');
 
-    const shipping = subtotal > 300 ? 0 : 15;
+    const shipping = subtotal > 1200000 ? 0 : 20000;
     const total = subtotal + shipping;
 
-    if (subtotalEl) subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
-    if (shippingEl) shippingEl.innerText = shipping === 0 ? '¡Gratis!' : `$${shipping.toFixed(2)}`;
-    if (totalEl) totalEl.innerText = `$${total.toFixed(2)}`;
+    if (subtotalEl) subtotalEl.innerText = formatCOP(subtotal);
+    if (shippingEl) shippingEl.innerText = shipping === 0 ? '¡Gratis!' : formatCOP(shipping);
+    if (totalEl) totalEl.innerText = formatCOP(total);
 }
 
 // ================= Catalog Filtering & Fetching =================
@@ -256,10 +262,10 @@ async function loadCatalog() {
 
                     <div class="phone-footer">
                         <div class="price-wrap">
-                            ${hasDiscount ? `<span class="old-price">$${phone.price.toFixed(2)}</span>` : ''}
-                            <span class="current-price">$${currentPrice.toFixed(2)}</span>
+                            ${hasDiscount ? `<span class="old-price">${formatCOP(phone.price)}</span>` : ''}
+                            <span class="current-price">${formatCOP(currentPrice)}</span>
                         </div>
-                        <button class="btn-add-cart" onclick="addToCart(${phone.id}, '${phone.name}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB')" title="Agregar al carrito">
+                        <button class="btn-add-cart" onclick="addToCart(${phone.id}, '${phone.name.replace(/'/g, "\\'")}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB')" title="Agregar al carrito">
                             🛒
                         </button>
                     </div>
@@ -292,9 +298,9 @@ function initPriceSlider() {
     if (!slider || !label) return;
 
     slider.addEventListener('input', (e) => {
-        const val = e.target.value;
-        label.innerText = `$${val}`;
-        activeFilters.max_price = parseFloat(val);
+        const val = parseFloat(e.target.value);
+        label.innerText = formatCOP(val);
+        activeFilters.max_price = val;
     });
 
     slider.addEventListener('change', () => {
@@ -374,6 +380,14 @@ function initFilterListeners() {
             if (searchInput) searchInput.value = '';
             document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
             if (filter5G) filter5G.checked = false;
+            
+            const slider = document.getElementById('price-range-slider');
+            const label = document.getElementById('price-range-val');
+            if (slider && label) {
+                slider.value = 7000000;
+                label.innerText = formatCOP(7000000);
+            }
+
             brandPills.forEach(p => p.classList.remove('active'));
             loadCatalog();
             showToast('Filtros restablecidos', 'info');
@@ -440,9 +454,9 @@ async function openPhoneModal(phoneId) {
 
                     <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border-color);">
                         <div>
-                            <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">$${currentPrice.toFixed(2)}</span>
+                            <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">${formatCOP(currentPrice)}</span>
                         </div>
-                        <button class="nav-btn" style="background: var(--accent-gradient); color: #fff; padding: 0.8rem 1.5rem; font-size: 1rem;" onclick="addToCart(${phone.id}, '${phone.name}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB'); closePhoneModal();">
+                        <button class="nav-btn" style="background: var(--accent-gradient); color: #fff; padding: 0.8rem 1.5rem; font-size: 1rem;" onclick="addToCart(${phone.id}, '${phone.name.replace(/'/g, "\\'")}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB'); closePhoneModal();">
                             🛒 Agregar al Carrito
                         </button>
                     </div>
@@ -549,7 +563,7 @@ function showOrderSuccessModal(order) {
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
                     <span style="color: var(--text-muted);">Total Pagado:</span>
-                    <strong style="color: #fff; font-size: 1.1rem;">$${order.total.toFixed(2)}</strong>
+                    <strong style="color: #fff; font-size: 1.1rem;">${formatCOP(order.total)}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
                     <span style="color: var(--text-muted);">Método de Pago:</span>

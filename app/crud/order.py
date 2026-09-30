@@ -50,7 +50,7 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
         )
         items_to_create.append(order_item)
 
-    shipping_cost = 0.0 if subtotal > 300 else 15.0 # Free shipping over $300
+    shipping_cost = 0.0 if subtotal > 1200000 else 20000.0 # Envío gratis para compras mayores a $1.200.000 COP
     total = subtotal + shipping_cost
 
     # 2. Create order record

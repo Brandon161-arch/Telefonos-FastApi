@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from app.models.brand import Brand
 from app.models.phone import Phone
 from app.models.user import User
-from app.models.order import Order, OrderItem
 from app.core.security import get_password_hash
 from app.core.config import settings
 
@@ -11,11 +10,11 @@ def seed_database(db: Session) -> None:
     admin = db.query(User).filter(User.email == settings.FIRST_ADMIN_EMAIL).first()
     if not admin:
         admin = User(
-            full_name="Administrador ElectroPhone",
+            full_name="Administrador ElectroPhone Colombia",
             email=settings.FIRST_ADMIN_EMAIL,
             hashed_password=get_password_hash(settings.FIRST_ADMIN_PASSWORD),
-            phone_number="+52 55 1234 5678",
-            address="Av. Reforma 222, CDMX",
+            phone_number="+57 310 987 6543",
+            address="Carrera 15 # 85-30, Bogotá D.C.",
             is_admin=True,
             is_active=True
         )
@@ -23,7 +22,7 @@ def seed_database(db: Session) -> None:
         db.commit()
         db.refresh(admin)
 
-    # Check if brands exist
+    # If brands don't exist, create them
     if db.query(Brand).count() == 0:
         brands_data = [
             {
@@ -71,7 +70,7 @@ def seed_database(db: Session) -> None:
             db.flush()
             brand_objs[brand.slug] = brand
 
-        # Seed Phones
+        # Seed Phones with realistic Colombian Pesos (COP)
         phones_data = [
             {
                 "brand_id": brand_objs["apple"].id,
@@ -79,8 +78,8 @@ def seed_database(db: Session) -> None:
                 "slug": "iphone-15-pro-max-256gb-titanio-natural",
                 "model_code": "A3106",
                 "description": "Diseñado en titanio aeroespacial, chip A17 Pro revolucionario, botón de Acción personalizable y sistema de cámaras Pro con teleobjetivo 5x.",
-                "price": 1199.00,
-                "discount_price": 1129.00,
+                "price": 5499900.0,
+                "discount_price": 4999900.0,
                 "stock": 18,
                 "ram_gb": 8,
                 "storage_gb": 256,
@@ -104,8 +103,8 @@ def seed_database(db: Session) -> None:
                 "slug": "samsung-galaxy-s24-ultra-512gb-titanium-black",
                 "model_code": "SM-S928B",
                 "description": "El titán de Android con Galaxy AI integrada, marco de titanio, S Pen incorporado, pantalla plana Dynamic AMOLED 2X y cámara principal de 200MP.",
-                "price": 1299.00,
-                "discount_price": 1199.00,
+                "price": 5899900.0,
+                "discount_price": 5299900.0,
                 "stock": 14,
                 "ram_gb": 12,
                 "storage_gb": 512,
@@ -129,8 +128,8 @@ def seed_database(db: Session) -> None:
                 "slug": "xiaomi-14-ultra-512gb-black",
                 "model_code": "24030PN60G",
                 "description": "Óptica legendaria Leica Vario-Summilux con sensor de 1 pulgada, apertura variable, Snapdragon 8 Gen 3 y carga hiper rápida de 90W.",
-                "price": 1099.00,
-                "discount_price": 999.00,
+                "price": 4899900.0,
+                "discount_price": 4399900.0,
                 "stock": 10,
                 "ram_gb": 16,
                 "storage_gb": 512,
@@ -154,8 +153,8 @@ def seed_database(db: Session) -> None:
                 "slug": "google-pixel-8-pro-256gb-obsidian",
                 "model_code": "GC3VE",
                 "description": "El smartphone de Google impulsado por el chip Tensor G3. Funciones exclusivas de IA como Magic Editor, Mejor Toma y 7 años de actualizaciones.",
-                "price": 899.00,
-                "discount_price": 799.00,
+                "price": 3899900.0,
+                "discount_price": 3499900.0,
                 "stock": 15,
                 "ram_gb": 12,
                 "storage_gb": 256,
@@ -179,8 +178,8 @@ def seed_database(db: Session) -> None:
                 "slug": "oneplus-12-512gb-silky-black",
                 "model_code": "CPH2581",
                 "description": "Rendimiento supremo con 16GB RAM LPDDR5X, cámara Hasselblad de 4ta generación, pantalla 2K ProXDR a 4500 nits y carga 100W.",
-                "price": 799.00,
-                "discount_price": 749.00,
+                "price": 3699900.0,
+                "discount_price": 3299900.0,
                 "stock": 12,
                 "ram_gb": 16,
                 "storage_gb": 512,
@@ -204,8 +203,8 @@ def seed_database(db: Session) -> None:
                 "slug": "motorola-edge-50-ultra-512gb-peach-fuzz",
                 "model_code": "XT2401-2",
                 "description": "Elegancia certificada por Pantone con acabado en madera real o cuero vegano, certificación IP68, teleobjetivo periscopio 3x y carga TurboPower 125W.",
-                "price": 849.00,
-                "discount_price": 779.00,
+                "price": 3599900.0,
+                "discount_price": 3199900.0,
                 "stock": 9,
                 "ram_gb": 16,
                 "storage_gb": 512,
@@ -229,8 +228,8 @@ def seed_database(db: Session) -> None:
                 "slug": "iphone-15-128gb-azul",
                 "model_code": "A3090",
                 "description": "Dynamic Island, cámara principal de 48 MP con teleobjetivo de 2x y diseño resistente de vidrio con infusión de color y aluminio.",
-                "price": 799.00,
-                "discount_price": None,
+                "price": 3699900.0,
+                "discount_price": 3399900.0,
                 "stock": 25,
                 "ram_gb": 6,
                 "storage_gb": 128,
@@ -254,8 +253,8 @@ def seed_database(db: Session) -> None:
                 "slug": "samsung-galaxy-a55-5g-256gb-awesome-iceblue",
                 "model_code": "SM-A556B",
                 "description": "El rey de la gama media con marco de metal premium, pantalla Super AMOLED de 120Hz, cámara triple de 50 MP y resistencia al agua IP67.",
-                "price": 429.00,
-                "discount_price": 389.00,
+                "price": 1799900.0,
+                "discount_price": 1499900.0,
                 "stock": 30,
                 "ram_gb": 8,
                 "storage_gb": 256,
@@ -279,4 +278,22 @@ def seed_database(db: Session) -> None:
             phone = Phone(**p_data)
             db.add(phone)
 
+        db.commit()
+    else:
+        # Update existing phones if prices were in USD
+        phones_updates = {
+            "iphone-15-pro-max-256gb-titanio-natural": (5499900.0, 4999900.0),
+            "samsung-galaxy-s24-ultra-512gb-titanium-black": (5899900.0, 5299900.0),
+            "xiaomi-14-ultra-512gb-black": (4899900.0, 4399900.0),
+            "google-pixel-8-pro-256gb-obsidian": (3899900.0, 3499900.0),
+            "oneplus-12-512gb-silky-black": (3699900.0, 3299900.0),
+            "motorola-edge-50-ultra-512gb-peach-fuzz": (3599900.0, 3199900.0),
+            "iphone-15-128gb-azul": (3699900.0, 3399900.0),
+            "samsung-galaxy-a55-5g-256gb-awesome-iceblue": (1799900.0, 1499900.0),
+        }
+        for slug, (pr, dpr) in phones_updates.items():
+            phone = db.query(Phone).filter(Phone.slug == slug).first()
+            if phone:
+                phone.price = pr
+                phone.discount_price = dpr
         db.commit()

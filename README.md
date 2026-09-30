@@ -7,11 +7,11 @@ Base completa, moderna y lista para producción de una tienda virtual especializ
 ## 🌟 Características Principales
 
 ### 🛒 Frontend & Experiencia de Usuario
-- **Catálogo Interactivo**: Filtrado reactivo en tiempo real por **marca** (Apple, Samsung, Xiaomi, Motorola, etc.), **precio máximo con slider**, **memoria RAM** (6GB, 8GB, 12GB, 16GB), **almacenamiento** (128GB, 256GB, 512GB) y conectividad **5G**.
+- **Catálogo Interactivo**: Filtrado reactivo en tiempo real por **marca** (Apple, Samsung, Xiaomi, Motorola, etc.), **precio máximo con slider en COP ($ 1.000.000 - $ 7.000.000)**, **memoria RAM** (6GB, 8GB, 12GB, 16GB), **almacenamiento** (128GB, 256GB, 512GB) y conectividad **5G**.
 - **Búsqueda Instantánea**: Búsqueda por modelo, procesador, color o descripción con debouncing.
-- **Carrito de Compras Persistente**: Drawer lateral de compras con almacenamiento en `localStorage`, cálculo automático de subtotal, envío gratis en pedidos mayores a $300 y actualización de unidades.
+- **Carrito de Compras Persistente**: Drawer lateral de compras con almacenamiento en `localStorage`, cálculo automático de subtotal en **Pesos Colombianos (COP)**, envío gratis en pedidos mayores a **$ 1.200.000 COP** y actualización de unidades.
 - **Modal de Especificaciones Rápidas**: Visualización de ficha técnica completa (procesador, pantalla OLED, batería mAh, cámaras MP, etc.).
-- **Checkout y Generación de Órdenes**: Formulario de compra completo con simulación de pago, validación de stock y generación de código de orden único (`ORD-XXXXXXXX`).
+- **Checkout y Generación de Órdenes**: Formulario de compra adaptado a Colombia (PSE, Nequi, Daviplata, tarjetas y contra entrega), validación de stock en tiempo real y código de orden único (`ORD-XXXXXXXX`).
 - **Rastreador de Pedidos**: Página dedicada `/track` para consultar el estado en vivo de cualquier orden de compra.
 
 ### ⚡ Backend & Arquitectura (FastAPI + SQLAlchemy)

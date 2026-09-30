@@ -66,6 +66,18 @@ templates_dir = os.path.join(BASE_DIR, "templates")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
 
+def format_cop(value):
+    """Formatea valores numéricos a pesos colombianos COP ($ 5.499.900)"""
+    if value is None:
+        return "$0"
+    try:
+        val_int = int(round(float(value)))
+        return f"${val_int:,}".replace(",", ".")
+    except (ValueError, TypeError):
+        return f"${value}"
+
+templates.env.filters["cop"] = format_cop
+
 # Register Master API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
