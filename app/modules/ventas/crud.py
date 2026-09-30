@@ -1,9 +1,10 @@
 import uuid
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
-from app.modules.ventas.models import Order, OrderItem
+from app.modules.ventas.models import Order, OrderItem, Coupon
 from app.modules.inventario.models import Phone
-from app.modules.ventas.schemas import OrderCreate, OrderStatusUpdate
+from app.modules.ventas.schemas import OrderCreate, OrderStatusUpdate, CouponCreate
 from app.modules.login.emails import send_order_confirmation_email
 
 def generate_order_number() -> str:
@@ -52,8 +53,14 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
         items_to_create.append(order_item)
 
     shipping_cost = 0.0 if subtotal > 1200000 else 20000.0 # Envío gratis para compras mayores a $1.200.000 COP
-    tax = round((subtotal + shipping_cost) * 0.19, 2)  # IVA 19% Colombia
-    total = subtotal + shipping_cost + tax
+    discount = 0.0
+    if order_in.coupon_code:
+        discount = apply_coupon_discount(db, order_in.coupon_code, subtotal)
+    taxable = subtotal - discount + shipping_cost
+    if taxable < 0:
+        taxable = 0.0
+    tax = round(taxable * 0.19, 2)  # IVA 19% Colombia
+    total = round(subtotal - discount + shipping_cost + tax, 2)
 
     # 2. Create order record
     db_order = Order(
@@ -68,7 +75,7 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
         subtotal=subtotal,
         shipping_cost=shipping_cost,
         tax=tax,
-        discount_amount=0.0,
+        discount_amount=round(discount, 2),
         total=total,
         payment_method=order_in.payment_method,
         payment_status="completed",
@@ -113,3 +120,61 @@ def update_order_status(db: Session, order: Order, status_update: OrderStatusUpd
     db.commit()
     db.refresh(order)
     return order
+
+# ==================== COUPONS ====================
+
+def get_coupon_by_code(db: Session, code: str) -> Optional[Coupon]:
+    return db.query(Coupon).filter(Coupon.code == code.strip().upper()).first()
+
+def get_coupons(db: Session, skip: int = 0, limit: int = 100) -> List[Coupon]:
+    return db.query(Coupon).order_by(Coupon.created_at.desc()).offset(skip).limit(limit).all()
+
+def create_coupon(db: Session, coupon_in: CouponCreate) -> Coupon:
+    db_coupon = Coupon(
+        code=coupon_in.code.strip().upper(),
+        discount_type=coupon_in.discount_type,
+        discount_value=coupon_in.discount_value,
+        max_uses=coupon_in.max_uses,
+        expires_at=coupon_in.expires_at
+    )
+    db.add(db_coupon)
+    db.commit()
+    db.refresh(db_coupon)
+    return db_coupon
+
+def delete_coupon(db: Session, coupon_id: int) -> bool:
+    coupon = db.query(Coupon).filter(Coupon.id == coupon_id).first()
+    if not coupon:
+        return False
+    db.delete(coupon)
+    db.commit()
+    return True
+
+def validate_coupon(db: Session, coupon: Coupon) -> None:
+    """Lanza ValueError si el cupón no es válido."""
+    if not coupon.is_active:
+        raise ValueError("Este cupón ya no está activo")
+    if coupon.expires_at and coupon.expires_at < datetime.utcnow():
+        raise ValueError("Este cupón ha expirado")
+    if coupon.max_uses > 0 and coupon.used_count >= coupon.max_uses:
+        raise ValueError("Este cupón ya alcanzó su límite de usos")
+
+def apply_coupon_discount(db: Session, code: str, subtotal: float) -> float:
+    """Valida el cupón y devuelve el monto de descuento. Lanza ValueError si es inválido."""
+    coupon = get_coupon_by_code(db, code)
+    if not coupon:
+        raise ValueError("El cupón ingresado no existe")
+    validate_coupon(db, coupon)
+
+    if coupon.discount_type == "percentage":
+        discount = round(subtotal * (coupon.discount_value / 100.0), 2)
+    else:  # fixed
+        discount = coupon.discount_value
+
+    if discount > subtotal:
+        discount = subtotal
+
+    # Incrementar uso
+    coupon.used_count += 1
+    db.commit()
+    return discount

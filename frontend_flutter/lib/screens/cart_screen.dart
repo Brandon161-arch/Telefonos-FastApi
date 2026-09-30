@@ -20,12 +20,16 @@ class _CartScreenState extends State<CartScreen> {
   final _address = TextEditingController();
   final _city = TextEditingController();
   final _postal = TextEditingController();
+  final _coupon = TextEditingController();
   String _payment = 'credit_card';
   bool _submitting = false;
+  String? _couponCode;
+  double? _couponDiscount;
+  bool _validatingCoupon = false;
 
   @override
   void dispose() {
-    _name.dispose(); _email.dispose(); _phone.dispose(); _address.dispose(); _city.dispose(); _postal.dispose();
+    _name.dispose(); _email.dispose(); _phone.dispose(); _address.dispose(); _city.dispose(); _postal.dispose(); _coupon.dispose();
     super.dispose();
   }
 
@@ -58,8 +62,27 @@ class _CartScreenState extends State<CartScreen> {
                   Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     _summaryRow('Subtotal', cart.subtotal),
                     _summaryRow('Envío', cart.shipping, free: cart.shipping == 0),
+                    if (_couponDiscount != null)
+                      _summaryRow('Descuento (${_couponCode ?? ''})', -_couponDiscount!, free: false),
                     const Divider(height: 24),
                     _summaryRow('Total', cart.total, bold: true),
+                  ]))),
+                  const SizedBox(height: 26),
+                  Text('Cupón de descuento', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 12),
+                  Card(child: Padding(padding: const EdgeInsets.all(18), child: Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _coupon,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: const InputDecoration(hintText: 'Código de cupón'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    FilledButton.tonal(
+                      onPressed: _validatingCoupon ? null : () => _applyCoupon(api, cart.subtotal),
+                      child: Text(_validatingCoupon ? 'Validando…' : 'Aplicar'),
+                    ),
                   ]))),
                   const SizedBox(height: 26),
                   Text('Datos de envío y pago', style: Theme.of(context).textTheme.headlineSmall),
@@ -110,6 +133,28 @@ class _CartScreenState extends State<CartScreen> {
         ),
       );
 
+  Future<void> _applyCoupon(ApiClient api, double subtotal) async {
+    final code = _coupon.text.trim().toUpperCase();
+    if (code.isEmpty) return;
+    setState(() => _validatingCoupon = true);
+    try {
+      final result = await api.validateCoupon(code, subtotal);
+      if (!mounted) return;
+      setState(() {
+        _couponCode = code;
+        _couponDiscount = (result['discount_amount'] as num).toDouble();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cupón aplicado: ${formatCop(_couponDiscount!)} de descuento')));
+    } catch (e) {
+      if (mounted) {
+        setState(() { _couponCode = null; _couponDiscount = null; });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => _validatingCoupon = false);
+    }
+  }
+
   Future<void> _checkout(CartController cart, ApiClient api) async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
@@ -122,6 +167,7 @@ class _CartScreenState extends State<CartScreen> {
         'city': _city.text.trim(),
         'postal_code': _postal.text.trim(),
         'payment_method': _payment,
+        if (_couponCode != null) 'coupon_code': _couponCode,
         'items': cart.lines.map((line) => {'phone_id': line.phone.id, 'quantity': line.quantity}).toList(),
       });
       await cart.clear();

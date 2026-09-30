@@ -281,6 +281,15 @@ class ApiClient {
     _decode(response);
   }
 
+  Future<Map<String, dynamic>> validateCoupon(String code, double subtotal) async {
+    final response = await _client.post(
+      _uri('/coupons/validate'),
+      headers: await _headers(),
+      body: jsonEncode({'code': code, 'subtotal': subtotal}),
+    );
+    return _decode(response) as Map<String, dynamic>;
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
