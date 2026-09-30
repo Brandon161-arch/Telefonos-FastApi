@@ -1,0 +1,118 @@
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request, Depends
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.core.database import engine, Base, get_db, SessionLocal
+from app.core.seed import seed_database
+from app.api.router import api_router
+from app.crud.brand import get_brands
+from app.crud.phone import get_phones
+from app.models.order import Order
+from app.models.phone import Phone
+from app.models.brand import Brand
+from app.models.user import User
+from sqlalchemy import func
+
+# Ensure database tables exist and seed initial data
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create tables & seed data
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    finally:
+        db.close()
+    yield
+    # Shutdown logic (if needed)
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.PROJECT_VERSION,
+    description="""
+    🚀 **ElectroPhone API**: Plataforma de comercio electrónico para venta de smartphones y telefonía móvil.
+    
+    ### Características principales:
+    * 📱 **Catálogo de Celulares**: Filtros por marca, RAM, almacenamiento, precio, conectividad 5G y búsqueda por texto.
+    * 🛒 **Carrito & Órdenes**: Validación de inventario en tiempo real y cálculo de envíos.
+    * 📦 **Rastreo de Envíos**: Seguimiento en vivo de órdenes mediante código de seguimiento.
+    * 🔐 **Autenticación JWT**: Registro, inicio de sesión y control de permisos de administrador.
+    * ⚙️ **Panel de Administración**: Métricas de ventas, alertas de stock bajo y gestión de productos.
+    """,
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Static files & Templates directory configuration
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(BASE_DIR, "static")
+templates_dir = os.path.join(BASE_DIR, "templates")
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+templates = Jinja2Templates(directory=templates_dir)
+
+# Register Master API Router
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# ================= Frontend Template Routes =================
+@app.get("/", tags=["Frontend"])
+def render_storefront(request: Request, db: Session = Depends(get_db)):
+    """Página principal de la tienda con catálogo interactivo y filtros"""
+    brands = get_brands(db)
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"brands": brands}
+    )
+
+@app.get("/track", tags=["Frontend"])
+def render_tracking_page(request: Request):
+    """Página de consulta y rastreo de órdenes de compra"""
+    return templates.TemplateResponse(
+        request=request,
+        name="track.html",
+        context={}
+    )
+
+@app.get("/admin", tags=["Frontend"])
+def render_admin_dashboard(request: Request, db: Session = Depends(get_db)):
+    """Panel de administración y control de inventario de celulares"""
+    total_sales = db.query(func.coalesce(func.sum(Order.total), 0.0)).scalar()
+    total_orders = db.query(Order).count()
+    total_phones = db.query(Phone).count()
+    total_brands = db.query(Brand).count()
+    
+    phones, _ = get_phones(db, limit=100)
+    brands = get_brands(db)
+
+    metrics = {
+        "total_revenue": total_sales,
+        "total_orders": total_orders,
+        "total_phones": total_phones,
+        "total_brands": total_brands
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin.html",
+        context={
+            "metrics": metrics,
+            "phones": phones,
+            "brands": brands
+        }
+    )
