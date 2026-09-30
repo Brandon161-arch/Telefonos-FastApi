@@ -29,8 +29,8 @@
 
             <div class="nav-actions">
                 <a href="/track" class="nav-btn">📦 Rastrear Orden</a>
-                <a href="/admin" class="nav-btn">⚙️ Panel Admin</a>
-                <a href="/docs" target="_blank" class="nav-btn" title="API Docs Swagger">⚡ Swagger API</a>
+                <a href="/admin" class="nav-btn" id="btn-nav-admin" style="display: none;">⚙️ Panel Admin</a>
+                <a href="/docs" target="_blank" class="nav-btn" id="btn-nav-swagger" title="API Docs Swagger" style="display: none;">⚡ Swagger API</a>
 
                 <a href="/login" class="nav-btn" id="btn-nav-login" style="display: none;">👤 Iniciar Sesión</a>
                 <div class="nav-user-menu" id="user-menu" style="display: none;">
@@ -116,7 +116,7 @@
                 <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.88rem;">
                     <li><a href="/" style="color: var(--text-muted); text-decoration: none;">Catálogo Completo</a></li>
                     <li><a href="/track" style="color: var(--text-muted); text-decoration: none;">Seguimiento de Pedido</a></li>
-                    <li><a href="/admin" style="color: var(--text-muted); text-decoration: none;">Administración</a></li>
+                    <li><a href="/admin" id="footer-nav-admin" style="color: var(--text-muted); text-decoration: none; display: none;">Administración</a></li>
                     <li><a href="/docs" target="_blank" style="color: var(--text-muted); text-decoration: none;">Documentación OpenAPI</a></li>
                 </ul>
             </div>

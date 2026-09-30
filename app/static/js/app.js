@@ -47,6 +47,15 @@ function initAuthUI() {
     const loginBtn = document.getElementById('btn-nav-login');
     const userMenu = document.getElementById('user-menu');
 
+    // Botones solo para administradores
+    const adminBtn = document.getElementById('btn-nav-admin');
+    const swaggerBtn = document.getElementById('btn-nav-swagger');
+    const footerAdmin = document.getElementById('footer-nav-admin');
+    const isAdmin = !!(user && user.is_admin);
+    if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    if (swaggerBtn) swaggerBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    if (footerAdmin) footerAdmin.style.display = isAdmin ? 'block' : 'none';
+
     if (!loginBtn && !userMenu) return;
 
     if (user) {
