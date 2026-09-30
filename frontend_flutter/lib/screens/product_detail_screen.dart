@@ -158,12 +158,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       const SizedBox(height: 12),
       _stockIndicator(phone),
       const SizedBox(height: 18),
-      FilledButton.icon(
-        onPressed: phone.stock > 0 ? () { cart.add(phone); _message('Agregado al carrito', isError: false); } : null,
-        icon: Icon(phone.stock > 0 ? Icons.add_shopping_cart : Icons.block),
-        label: Text(phone.stock > 0 ? 'Agregar al carrito' : 'Agotado'),
-      ),
+      Row(children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: phone.stock > 0 ? () { cart.add(phone); _message('Agregado al carrito', isError: false); } : null,
+            icon: Icon(phone.stock > 0 ? Icons.add_shopping_cart : Icons.block),
+            label: Text(phone.stock > 0 ? 'Agregar al carrito' : 'Agotado'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        IconButton.outlined(
+          tooltip: 'Guardar en favoritos',
+          onPressed: () => _toggleFavorite(phone),
+          icon: const Icon(Icons.favorite_border),
+        ),
+      ]),
     ]);
+  }
+
+  Future<void> _toggleFavorite(Phone phone) async {
+    try {
+      await _api.addFavorite(phone.id);
+      if (mounted) _message('Guardado en favoritos', isError: false);
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        if (mounted) context.push('/login');
+      } else if (e.statusCode == 400) {
+        // Ya está en favoritos -> quitar
+        try {
+          await _api.removeFavorite(phone.id);
+          if (mounted) _message('Eliminado de favoritos', isError: false);
+        } catch (e2) {
+          if (mounted) _message(e2.toString());
+        }
+      } else {
+        if (mounted) _message(e.message);
+      }
+    } catch (e) {
+      if (mounted) _message(e.toString());
+    }
   }
 
   Widget _stockIndicator(Phone phone) {

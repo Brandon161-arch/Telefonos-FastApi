@@ -6,6 +6,7 @@ import 'screens/account_screen.dart';
 import 'screens/admin_screen.dart';
 import 'screens/cart_screen.dart';
 import 'screens/catalog_screen.dart';
+import 'screens/favorites_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/product_detail_screen.dart';
 import 'screens/track_screen.dart';
@@ -37,6 +38,7 @@ class ElectroPhoneApp extends StatelessWidget {
             GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
             GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
             GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
+            GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),
             GoRoute(path: '/track', builder: (context, state) => const TrackScreen()),
             GoRoute(path: '/admin', builder: (context, state) => const AdminScreen()),
             GoRoute(path: '/verify-email', builder: (context, state) => VerifyEmailScreen(token: state.uri.queryParameters['token'] ?? '')),

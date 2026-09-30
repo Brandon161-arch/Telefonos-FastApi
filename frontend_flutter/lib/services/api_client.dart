@@ -258,6 +258,29 @@ class ApiClient {
     _decode(response);
   }
 
+  Future<List<Phone>> getFavorites() async {
+    final response = await _client.get(_uri('/favorites'), headers: await _headers(authenticated: true));
+    return (_decode(response) as List<dynamic>)
+        .map((item) => Phone.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> addFavorite(int phoneId) async {
+    final response = await _client.post(
+      _uri('/favorites/$phoneId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
+  Future<void> removeFavorite(int phoneId) async {
+    final response = await _client.delete(
+      _uri('/favorites/$phoneId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);

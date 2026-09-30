@@ -23,6 +23,7 @@ class StoreScaffold extends StatelessWidget {
         ),
         actions: [
           IconButton(tooltip: 'Rastrear pedido', onPressed: () => context.go('/track'), icon: const Icon(Icons.local_shipping_outlined)),
+          IconButton(tooltip: 'Mis favoritos', onPressed: () => context.go('/favorites'), icon: const Icon(Icons.favorite_border)),
           FutureBuilder<Map<String, dynamic>?>(
             future: userFuture,
             builder: (context, snapshot) {
