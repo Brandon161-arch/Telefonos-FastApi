@@ -10,12 +10,10 @@ from app.core.config import settings
 from app.core.database import engine, Base, get_db, SessionLocal
 from app.core.seed import seed_database
 from app.api.router import api_router
-from app.crud.brand import get_brands
-from app.crud.phone import get_phones
-from app.models.order import Order
-from app.models.phone import Phone
-from app.models.brand import Brand
-from app.models.user import User
+from app.modules.inventario.crud import get_brands, get_phones
+from app.modules.ventas.models import Order
+from app.modules.inventario.models import Phone, Brand
+from app.modules.login.models import User
 from sqlalchemy import func
 
 # Ensure database tables exist and seed initial data

@@ -27,22 +27,18 @@ Base completa, moderna y lista para producción de una tienda virtual especializ
 ```text
 Telefonos-FastApi/
 ├── app/
-│   ├── api/
-│   │   ├── v1/
-│   │   │   ├── admin.py       # Métricas de ventas y control de inventario
-│   │   │   ├── auth.py        # Registro, Login y JWT
-│   │   │   ├── brands.py      # CRUD de marcas de celulares
-│   │   │   ├── orders.py      # Checkout y rastreo de pedidos
-│   │   │   └── phones.py      # Catálogo, filtros avanzados y búsqueda
-│   │   └── router.py          # Router maestro de la API
 │   ├── core/
 │   │   ├── config.py          # Configuración del proyecto y variables
 │   │   ├── database.py        # Sesiones de SQLAlchemy y conexión
 │   │   ├── security.py        # Hashing de passwords y generación de tokens JWT
 │   │   └── seed.py            # Catálogo inicial de smartphones y admin por defecto
-│   ├── crud/                  # Capa de acceso a datos (queries & transacciones)
-│   ├── models/                # Modelos de base de datos (Phone, Brand, Order, User, Review)
-│   ├── schemas/               # Validaciones de entrada/salida con Pydantic
+│   ├── modules/
+│   │   ├── login/             # Autenticación, registro y JWT (rama: login)
+│   │   ├── inventario/        # Marcas, catálogo de celulares y CRUD (rama: inventario)
+│   │   ├── dashboard/         # Panel de administración y métricas (rama: dashboard)
+│   │   └── ventas/            # Órdenes, checkout y rastreo de pedidos (base de main)
+│   ├── api/
+│   │   └── router.py          # Router maestro que agrega los módulos
 │   ├── static/
 │   │   ├── css/style.css      # Estilos modernos Dark Glassmorphism
 │   │   └── js/app.js          # Lógica interactiva del cliente (carrito, filtros)
@@ -85,3 +81,18 @@ Al iniciar la aplicación por primera vez, se genera automáticamente el usuario
 
 - **Email**: `admin@electrophone.com`
 - **Contraseña**: `admin123456`
+
+---
+
+## 🌿 Organización por Ramas (Módulos)
+
+El proyecto está organizado en **módulos** dentro de `app/modules/`, y cada módulo tiene su propia rama de trabajo en GitHub:
+
+| Rama | Módulo | Contenido |
+|------|--------|-----------|
+| `main` | Base + `ventas` | Tienda completa y funcional, órdenes, checkout y rastreo |
+| `login` | `app/modules/login/` | Autenticación, registro, login y tokens JWT |
+| `inventario` | `app/modules/inventario/` | Marcas y catálogo de celulares (CRUD) |
+| `dashboard` | `app/modules/dashboard/` | Panel de administración y métricas |
+
+Cada rama es una copia de `main` con su módulo aislado en su propia carpeta, lista para desarrollarse y mergearse de vuelta a `main`.

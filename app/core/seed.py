@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models.brand import Brand
-from app.models.phone import Phone
-from app.models.user import User
+from app.modules.inventario.models import Brand, Phone
+from app.modules.login.models import User
 from app.core.security import get_password_hash
 from app.core.config import settings
 

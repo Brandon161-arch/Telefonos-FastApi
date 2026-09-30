@@ -1,14 +1,12 @@
 from fastapi import APIRouter
-from app.api.v1.auth import router as auth_router
-from app.api.v1.brands import router as brands_router
-from app.api.v1.phones import router as phones_router
-from app.api.v1.orders import router as orders_router
-from app.api.v1.admin import router as admin_router
+from app.modules.login.router import router as auth_router
+from app.modules.inventario.router import router as inventario_router
+from app.modules.ventas.router import router as orders_router
+from app.modules.dashboard.router import router as admin_router
 
 api_router = APIRouter()
 
 api_router.include_router(auth_router)
-api_router.include_router(brands_router)
-api_router.include_router(phones_router)
+api_router.include_router(inventario_router)
 api_router.include_router(orders_router)
 api_router.include_router(admin_router)
