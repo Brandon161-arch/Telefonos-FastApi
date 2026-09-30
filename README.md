@@ -53,12 +53,17 @@ Telefonos-FastApi/
 
 ## 🚀 Cómo Ejecutar el Proyecto
 
-### 1. Instalar dependencias
+### 1. Configurar el entorno
+```bash
+cp .env.example .env     # Windows: copy .env.example .env
+```
+
+### 2. Instalar dependencias
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Iniciar el servidor
+### 3. Iniciar el servidor
 ```bash
 python run.py
 ```
@@ -67,7 +72,9 @@ python run.py
 uvicorn app.main:app --reload
 ```
 
-### 3. Abrir en tu navegador
+> La base de datos SQLite (`telefonos.db`) se crea automáticamente en el primer arranque, junto con el catálogo inicial y el administrador por defecto.
+
+### 4. Abrir en tu navegador
 - 🌐 **Tienda Virtual**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - 📦 **Rastrear Pedido**: [http://127.0.0.1:8000/track](http://127.0.0.1:8000/track)
 - ⚙️ **Panel de Administración**: [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin)

@@ -1,5 +1,8 @@
 import os
-from typing import List
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde el archivo .env (si existe)
+load_dotenv()
 
 class Settings:
     PROJECT_NAME: str = "ElectroPhone Store"
