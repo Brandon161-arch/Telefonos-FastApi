@@ -40,3 +40,35 @@ class OrderSummary {
         createdAt: json['created_at'] as String?,
       );
 }
+
+class AdminMetrics {
+  const AdminMetrics({
+    required this.totalRevenue,
+    required this.totalOrders,
+    required this.totalPhones,
+    required this.totalBrands,
+    required this.totalUsers,
+    required this.lowStockCount,
+    required this.lowStockItems,
+  });
+
+  final double totalRevenue;
+  final int totalOrders;
+  final int totalPhones;
+  final int totalBrands;
+  final int totalUsers;
+  final int lowStockCount;
+  final List<Map<String, dynamic>> lowStockItems;
+
+  factory AdminMetrics.fromJson(Map<String, dynamic> json) => AdminMetrics(
+        totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0,
+        totalOrders: (json['total_orders'] as num?)?.toInt() ?? 0,
+        totalPhones: (json['total_phones'] as num?)?.toInt() ?? 0,
+        totalBrands: (json['total_brands'] as num?)?.toInt() ?? 0,
+        totalUsers: (json['total_users'] as num?)?.toInt() ?? 0,
+        lowStockCount: (json['low_stock_count'] as num?)?.toInt() ?? 0,
+        lowStockItems: (json['low_stock_items'] as List<dynamic>? ?? [])
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList(),
+      );
+}

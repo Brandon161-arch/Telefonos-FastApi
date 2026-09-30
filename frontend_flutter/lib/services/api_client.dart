@@ -187,6 +187,54 @@ class ApiClient {
     _decode(response);
   }
 
+  Future<AdminMetrics> getAdminMetrics() async {
+    final response = await _client.get(_uri('/admin/metrics'), headers: await _headers(authenticated: true));
+    return AdminMetrics.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<Phone> createPhone(Map<String, dynamic> payload) async {
+    final response = await _client.post(
+      _uri('/phones'),
+      headers: await _headers(authenticated: true),
+      body: jsonEncode(payload),
+    );
+    return Phone.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<Phone> updatePhone(int phoneId, Map<String, dynamic> payload) async {
+    final response = await _client.put(
+      _uri('/phones/$phoneId'),
+      headers: await _headers(authenticated: true),
+      body: jsonEncode(payload),
+    );
+    return Phone.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<void> deletePhone(int phoneId) async {
+    final response = await _client.delete(
+      _uri('/phones/$phoneId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
+  Future<Brand> createBrand(Map<String, dynamic> payload) async {
+    final response = await _client.post(
+      _uri('/brands'),
+      headers: await _headers(authenticated: true),
+      body: jsonEncode(payload),
+    );
+    return Brand.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteBrand(int brandId) async {
+    final response = await _client.delete(
+      _uri('/brands/$brandId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);

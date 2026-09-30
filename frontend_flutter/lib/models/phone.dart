@@ -9,6 +9,7 @@ class Phone {
     required this.storageGb,
     required this.color,
     required this.imageUrl,
+    this.brandId,
     this.discountPrice,
     this.description,
     this.processor,
@@ -26,6 +27,7 @@ class Phone {
   });
 
   final int id;
+  final int? brandId;
   final String name;
   final String slug;
   final double price;
@@ -57,6 +59,7 @@ class Phone {
     final brand = json['brand'];
     return Phone(
       id: (json['id'] as num).toInt(),
+      brandId: (json['brand_id'] as num?)?.toInt(),
       name: json['name'] as String? ?? 'Teléfono',
       slug: json['slug'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0,
