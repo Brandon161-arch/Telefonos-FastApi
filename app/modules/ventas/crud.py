@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.modules.ventas.models import Order, OrderItem
 from app.modules.inventario.models import Phone
 from app.modules.ventas.schemas import OrderCreate, OrderStatusUpdate
+from app.modules.login.emails import send_order_confirmation_email
 
 def generate_order_number() -> str:
     return f"ORD-{uuid.uuid4().hex[:8].upper()}"
@@ -82,6 +83,27 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
 
     db.commit()
     db.refresh(db_order)
+
+    # Enviar correo de confirmación de compra (no bloquea la orden si falla)
+    try:
+        send_order_confirmation_email(
+            to_email=db_order.customer_email,
+            customer_name=db_order.customer_name,
+            order={
+                "order_number": db_order.order_number,
+                "total": db_order.total,
+                "payment_method": db_order.payment_method,
+                "shipping_address": db_order.shipping_address,
+                "city": db_order.city,
+                "items": [
+                    {"phone_name": i.phone_name, "quantity": i.quantity, "subtotal": i.subtotal}
+                    for i in db_order.items
+                ],
+            },
+        )
+    except Exception as exc:
+        print(f"[WARN] No se pudo enviar el correo de confirmación: {exc}")
+
     return db_order
 
 def update_order_status(db: Session, order: Order, status_update: OrderStatusUpdate) -> Order:

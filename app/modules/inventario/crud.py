@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc, asc, func
-from app.modules.inventario.models import Brand, Phone, Review
+from app.modules.inventario.models import Brand, Phone, Review, Favorite
 from app.modules.inventario.schemas import (
     BrandCreate, BrandUpdate, PhoneCreate, PhoneUpdate, ReviewCreate
 )
@@ -196,3 +196,31 @@ def _recalculate_phone_rating(db: Session, phone_id: int) -> None:
     phone.rating_count = count or 0
     db.commit()
     db.refresh(phone)
+
+# ==================== FAVORITES ====================
+
+def get_favorites(db: Session, user_id: int) -> List[Favorite]:
+    return (
+        db.query(Favorite)
+        .filter(Favorite.user_id == user_id)
+        .order_by(Favorite.created_at.desc())
+        .all()
+    )
+
+def get_favorite(db: Session, user_id: int, phone_id: int) -> Optional[Favorite]:
+    return db.query(Favorite).filter(Favorite.user_id == user_id, Favorite.phone_id == phone_id).first()
+
+def add_favorite(db: Session, user_id: int, phone_id: int) -> Favorite:
+    db_fav = Favorite(user_id=user_id, phone_id=phone_id)
+    db.add(db_fav)
+    db.commit()
+    db.refresh(db_fav)
+    return db_fav
+
+def remove_favorite(db: Session, user_id: int, phone_id: int) -> bool:
+    fav = get_favorite(db, user_id=user_id, phone_id=phone_id)
+    if not fav:
+        return False
+    db.delete(fav)
+    db.commit()
+    return True
