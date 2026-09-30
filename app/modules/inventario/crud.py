@@ -1,8 +1,10 @@
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, desc, asc
-from app.modules.inventario.models import Brand, Phone
-from app.modules.inventario.schemas import BrandCreate, BrandUpdate, PhoneCreate, PhoneUpdate
+from sqlalchemy import or_, desc, asc, func
+from app.modules.inventario.models import Brand, Phone, Review
+from app.modules.inventario.schemas import (
+    BrandCreate, BrandUpdate, PhoneCreate, PhoneUpdate, ReviewCreate
+)
 
 # ==================== BRANDS ====================
 
@@ -137,3 +139,60 @@ def update_stock(db: Session, phone_id: int, quantity_change: int) -> Optional[P
         db.refresh(phone)
         return phone
     return None
+
+# ==================== REVIEWS ====================
+
+def get_reviews(db: Session, phone_id: int, skip: int = 0, limit: int = 50) -> List[Review]:
+    return (
+        db.query(Review)
+        .filter(Review.phone_id == phone_id)
+        .order_by(desc(Review.created_at))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+def create_review(
+    db: Session,
+    phone_id: int,
+    review_in: ReviewCreate,
+    user_name: str,
+    user_id: Optional[int] = None
+) -> Review:
+    db_review = Review(
+        phone_id=phone_id,
+        user_id=user_id,
+        user_name=user_name,
+        rating=review_in.rating,
+        comment=review_in.comment.strip()
+    )
+    db.add(db_review)
+    db.commit()
+    db.refresh(db_review)
+
+    # Recalcular rating promedio y conteo del teléfono
+    _recalculate_phone_rating(db, phone_id)
+    return db_review
+
+def delete_review(db: Session, review_id: int) -> bool:
+    review = db.query(Review).filter(Review.id == review_id).first()
+    if not review:
+        return False
+    phone_id = review.phone_id
+    db.delete(review)
+    db.commit()
+    _recalculate_phone_rating(db, phone_id)
+    return True
+
+def _recalculate_phone_rating(db: Session, phone_id: int) -> None:
+    phone = db.query(Phone).filter(Phone.id == phone_id).first()
+    if not phone:
+        return
+    avg, count = db.query(
+        func.avg(Review.rating),
+        func.count(Review.id)
+    ).filter(Review.phone_id == phone_id).first()
+    phone.rating = round(float(avg), 2) if avg else 4.8
+    phone.rating_count = count or 0
+    db.commit()
+    db.refresh(phone)

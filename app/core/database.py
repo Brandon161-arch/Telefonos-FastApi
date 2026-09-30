@@ -43,5 +43,11 @@ def migrate_sqlite_schema():
     if "verification_token_expires" not in cols:
         cur.execute("ALTER TABLE users ADD COLUMN verification_token_expires DATETIME")
 
+    # reviews: columna user_id (ligar reseña a cuenta de usuario)
+    cur.execute("PRAGMA table_info(reviews)")
+    rcols = {row[1] for row in cur.fetchall()}
+    if "user_id" not in rcols:
+        cur.execute("ALTER TABLE reviews ADD COLUMN user_id INTEGER REFERENCES users(id)")
+
     conn.commit()
     conn.close()

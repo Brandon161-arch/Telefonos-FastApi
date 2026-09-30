@@ -93,3 +93,19 @@ class PhoneFilterParams(BaseModel):
     is_5g: Optional[bool] = None
     search: Optional[str] = None
     sort_by: Optional[str] = "created_at" # price_asc, price_desc, rating, name
+
+
+class ReviewCreate(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: str = Field(..., min_length=3, max_length=2000)
+
+class ReviewResponse(BaseModel):
+    id: int
+    phone_id: int
+    user_id: Optional[int] = None
+    user_name: str
+    rating: int
+    comment: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

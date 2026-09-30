@@ -252,19 +252,36 @@ function updateCartUI() {
 }
 
 // ================= Catalog Filtering & Fetching =================
-async function loadCatalog() {
+const catalogState = {
+    skip: 0,
+    limit: 12,
+    total: 0,
+    isLoading: false,
+    hasMore: true
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Infinite scroll: observar un centinela al final del grid
+    initCatalogObserver();
+});
+
+let catalogObserver = null;
+function initCatalogObserver() {
+    if (catalogObserver) catalogObserver.disconnect();
     const grid = document.getElementById('products-grid');
-    const countEl = document.getElementById('results-count');
     if (!grid) return;
 
-    grid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
-            <div style="font-size: 2rem; animation: spin 1s linear infinite; display: inline-block;">⚡</div>
-            <p style="color: var(--text-muted); margin-top: 0.5rem;">Cargando catálogo de celulares...</p>
-        </div>
-    `;
+    catalogObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && catalogState.hasMore && !catalogState.isLoading) {
+            loadMoreCatalog();
+        }
+    }, { rootMargin: '200px' });
 
-    // Build Query String
+    const sentinel = document.getElementById('catalog-sentinel');
+    if (sentinel) catalogObserver.observe(sentinel);
+}
+
+function buildCatalogQuery() {
     const params = new URLSearchParams();
     if (activeFilters.brand_id) params.append('brand_id', activeFilters.brand_id);
     if (activeFilters.min_price) params.append('min_price', activeFilters.min_price);
@@ -274,11 +291,73 @@ async function loadCatalog() {
     if (activeFilters.is_5g !== null) params.append('is_5g', activeFilters.is_5g);
     if (activeFilters.search) params.append('search', activeFilters.search);
     if (activeFilters.sort_by) params.append('sort_by', activeFilters.sort_by);
+    return params;
+}
+
+function renderPhoneCard(phone) {
+    const currentPrice = phone.discount_price || phone.price;
+    const hasDiscount = phone.discount_price && phone.discount_price < phone.price;
+
+    return `
+        <div class="phone-card glass">
+            <div class="card-badges">
+                ${phone.is_5g ? '<span class="badge badge-5g">5G</span>' : ''}
+                ${phone.is_featured ? '<span class="badge badge-featured">Destacado</span>' : ''}
+                ${hasDiscount ? '<span class="badge badge-offer">Oferta</span>' : ''}
+            </div>
+
+            <div class="phone-img-wrap" onclick="openPhoneModal(${phone.id})">
+                <img src="${phone.image_url}" alt="${phone.name}" loading="lazy">
+            </div>
+
+            <div class="phone-brand-tag">${phone.brand ? phone.brand.name : 'Smartphone'}</div>
+            <a href="/phone/${phone.slug}" class="phone-title">${phone.name}</a>
+
+            <div class="specs-pills">
+                <span class="spec-pill">🚀 ${phone.ram_gb} GB RAM</span>
+                <span class="spec-pill">💾 ${phone.storage_gb} GB</span>
+                <span class="spec-pill">🔋 ${phone.battery_mah || 5000} mAh</span>
+            </div>
+
+            <div class="phone-footer">
+                <div class="price-wrap">
+                    ${hasDiscount ? `<span class="old-price">${formatCOP(phone.price)}</span>` : ''}
+                    <span class="current-price">${formatCOP(currentPrice)}</span>
+                </div>
+                <button class="btn-add-cart" onclick="addToCart(${phone.id}, '${phone.name.replace(/'/g, "\\'")}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB')" title="Agregar al carrito">
+                    🛒
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+async function loadCatalog() {
+    const grid = document.getElementById('products-grid');
+    const countEl = document.getElementById('results-count');
+    if (!grid) return;
+
+    // Reset de paginación
+    catalogState.skip = 0;
+    catalogState.hasMore = true;
+
+    grid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+            <div style="font-size: 2rem; animation: spin 1s linear infinite; display: inline-block;">⚡</div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Cargando catálogo de celulares...</p>
+        </div>
+    `;
+
+    const params = buildCatalogQuery();
+    params.append('skip', '0');
+    params.append('limit', catalogState.limit);
 
     try {
         const response = await fetch(`/api/v1/phones?${params.toString()}`);
         if (!response.ok) throw new Error('Error al cargar productos');
         const data = await response.json();
+
+        catalogState.total = data.total;
 
         if (countEl) countEl.innerText = `${data.total} celulares encontrados`;
 
@@ -290,49 +369,63 @@ async function loadCatalog() {
                     <p style="color: var(--text-muted);">Prueba ajustando los filtros o tu término de búsqueda.</p>
                 </div>
             `;
+            catalogState.hasMore = false;
             return;
         }
 
-        grid.innerHTML = data.data.map(phone => {
-            const currentPrice = phone.discount_price || phone.price;
-            const hasDiscount = phone.discount_price && phone.discount_price < phone.price;
+        catalogState.skip = data.data.length;
+        catalogState.hasMore = catalogState.skip < catalogState.total;
 
-            return `
-                <div class="phone-card glass">
-                    <div class="card-badges">
-                        ${phone.is_5g ? '<span class="badge badge-5g">5G</span>' : ''}
-                        ${phone.is_featured ? '<span class="badge badge-featured">Destacado</span>' : ''}
-                        ${hasDiscount ? '<span class="badge badge-offer">Oferta</span>' : ''}
-                    </div>
+        grid.innerHTML = data.data.map(renderPhoneCard).join('') +
+            `<div id="catalog-sentinel" style="grid-column:1/-1;height:20px;"></div>`;
 
-                    <div class="phone-img-wrap" onclick="openPhoneModal(${phone.id})">
-                        <img src="${phone.image_url}" alt="${phone.name}" loading="lazy">
-                    </div>
-
-                    <div class="phone-brand-tag">${phone.brand ? phone.brand.name : 'Smartphone'}</div>
-                    <a href="javascript:void(0)" onclick="openPhoneModal(${phone.id})" class="phone-title">${phone.name}</a>
-
-                    <div class="specs-pills">
-                        <span class="spec-pill">🚀 ${phone.ram_gb} GB RAM</span>
-                        <span class="spec-pill">💾 ${phone.storage_gb} GB</span>
-                        <span class="spec-pill">🔋 ${phone.battery_mah || 5000} mAh</span>
-                    </div>
-
-                    <div class="phone-footer">
-                        <div class="price-wrap">
-                            ${hasDiscount ? `<span class="old-price">${formatCOP(phone.price)}</span>` : ''}
-                            <span class="current-price">${formatCOP(currentPrice)}</span>
-                        </div>
-                        <button class="btn-add-cart" onclick="addToCart(${phone.id}, '${phone.name.replace(/'/g, "\\'")}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB')" title="Agregar al carrito">
-                            🛒
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        initCatalogObserver();
 
     } catch (err) {
         grid.innerHTML = `<div style="grid-column: 1/-1; color: var(--danger); text-align: center; padding: 2rem;">Error cargando el catálogo. Revisa la consola o recarga.</div>`;
+    }
+}
+
+async function loadMoreCatalog() {
+    const grid = document.getElementById('products-grid');
+    if (!grid || catalogState.isLoading || !catalogState.hasMore) return;
+
+    catalogState.isLoading = true;
+
+    // Mostrar spinner de carga al final
+    const sentinel = document.getElementById('catalog-sentinel');
+    if (sentinel) {
+        sentinel.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--text-muted);"><span style="font-size:1.5rem;animation:spin 1s linear infinite;display:inline-block;">⚡</span> Cargando más...</div>`;
+    }
+
+    const params = buildCatalogQuery();
+    params.append('skip', String(catalogState.skip));
+    params.append('limit', String(catalogState.limit));
+
+    try {
+        const response = await fetch(`/api/v1/phones?${params.toString()}`);
+        if (!response.ok) throw new Error('Error');
+        const data = await response.json();
+
+        catalogState.skip += data.data.length;
+        catalogState.hasMore = catalogState.skip < catalogState.total;
+
+        // Remover spinner y añadir nuevas tarjetas antes del centinela
+        const newSentinel = document.createElement('div');
+        newSentinel.id = 'catalog-sentinel';
+        newSentinel.style.gridColumn = '1 / -1';
+        newSentinel.style.height = '20px';
+
+        if (sentinel && sentinel.parentNode) {
+            sentinel.insertAdjacentHTML('beforebegin', data.data.map(renderPhoneCard).join(''));
+            sentinel.replaceWith(newSentinel);
+        }
+        if (catalogState.hasMore) initCatalogObserver();
+    } catch (err) {
+        const s = document.getElementById('catalog-sentinel');
+        if (s) s.innerHTML = '';
+    } finally {
+        catalogState.isLoading = false;
     }
 }
 
@@ -513,6 +606,9 @@ async function openPhoneModal(phoneId) {
                     <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border-color);">
                         <div>
                             <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">${formatCOP(currentPrice)}</span>
+                            <div style="margin-top: 0.3rem;">
+                                <a href="/phone/${phone.slug}" class="nav-btn" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Ver página completa →</a>
+                            </div>
                         </div>
                         <button class="nav-btn" style="background: var(--accent-gradient); color: #fff; padding: 0.8rem 1.5rem; font-size: 1rem;" onclick="addToCart(${phone.id}, '${phone.name.replace(/'/g, "\\'")}', ${currentPrice}, '${phone.image_url}', '${phone.color}', '${phone.storage_gb}GB'); closePhoneModal();">
                             🛒 Agregar al Carrito

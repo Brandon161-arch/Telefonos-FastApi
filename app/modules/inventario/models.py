@@ -64,6 +64,7 @@ class Review(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     phone_id = Column(Integer, ForeignKey("phones.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     user_name = Column(String(100), nullable=False)
     rating = Column(Integer, nullable=False) # 1 to 5
     comment = Column(Text, nullable=False)

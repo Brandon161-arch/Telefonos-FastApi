@@ -4,13 +4,16 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.inventario.schemas import (
     BrandResponse, BrandCreate, BrandUpdate,
-    PhoneResponse, PhoneCreate, PhoneUpdate
+    PhoneResponse, PhoneCreate, PhoneUpdate,
+    ReviewCreate, ReviewResponse
 )
 from app.modules.inventario.crud import (
     get_brands, get_brand, get_brand_by_slug, create_brand, update_brand, delete_brand,
-    get_phones, get_phone, get_phone_by_slug, create_phone, update_phone, delete_phone
+    get_phones, get_phone, get_phone_by_slug, create_phone, update_phone, delete_phone,
+    get_reviews, create_review, delete_review
 )
-from app.modules.login.router import get_current_admin
+from app.modules.login.router import get_current_admin, get_current_user_optional
+from app.modules.login.models import User
 
 router = APIRouter()
 
@@ -170,3 +173,69 @@ def delete_existing_phone(
 
 router.include_router(brands_router)
 router.include_router(phones_router)
+
+# ==================== REVIEWS ====================
+
+reviews_router = APIRouter(prefix="/phones/{phone_id}/reviews", tags=["Reseñas"])
+
+@reviews_router.get("", response_model=dict)
+def list_reviews(
+    phone_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """Listar reseñas y calificaciones de un teléfono"""
+    phone = get_phone(db, phone_id=phone_id)
+    if not phone:
+        raise HTTPException(status_code=404, detail="Teléfono no encontrado")
+    reviews = get_reviews(db, phone_id=phone_id, skip=skip, limit=limit)
+    return {
+        "total": len(reviews),
+        "rating": phone.rating,
+        "rating_count": phone.rating_count,
+        "data": [ReviewResponse.model_validate(r) for r in reviews]
+    }
+
+@reviews_router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
+def add_review(
+    phone_id: int,
+    review_in: ReviewCreate,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """Publicar una reseña sobre un teléfono (requiere cuenta verificada)"""
+    phone = get_phone(db, phone_id=phone_id)
+    if not phone:
+        raise HTTPException(status_code=404, detail="Teléfono no encontrado")
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Debes iniciar sesión para dejar una reseña"
+        )
+    if not current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Debes verificar tu cuenta por correo antes de dejar una reseña"
+        )
+    return create_review(
+        db, phone_id=phone_id, review_in=review_in,
+        user_name=current_user.full_name, user_id=current_user.id
+    )
+
+reviews_admin_router = APIRouter(prefix="/reviews", tags=["Reseñas"])
+
+@reviews_admin_router.delete("/{review_id}")
+def remove_review(
+    review_id: int,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin)
+):
+    """Eliminar una reseña (Solo Administradores)"""
+    success = delete_review(db, review_id=review_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Reseña no encontrada")
+    return {"message": "Reseña eliminada correctamente"}
+
+router.include_router(reviews_router)
+router.include_router(reviews_admin_router)

@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.database import engine, Base, get_db, SessionLocal, migrate_sqlite_schema
 from app.core.seed import seed_database
 from app.api.router import api_router
-from app.modules.inventario.crud import get_brands, get_phones
+from app.modules.inventario.crud import get_brands, get_phones, get_phone_by_slug
 from app.modules.ventas.models import Order
 from app.modules.inventario.models import Phone, Brand
 from app.modules.login.models import User
@@ -125,6 +125,19 @@ def render_account_page(request: Request):
         request=request,
         name="account.html",
         context={}
+    )
+
+@app.get("/phone/{slug}", tags=["Frontend"])
+def render_phone_detail_page(slug: str, request: Request, db: Session = Depends(get_db)):
+    """Página de detalle de un teléfono por slug (con especificaciones y reseñas)"""
+    phone = get_phone_by_slug(db, slug=slug)
+    if not phone:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse("/", status_code=302)
+    return templates.TemplateResponse(
+        request=request,
+        name="phone_detail.html",
+        context={"phone": phone}
     )
 
 @app.get("/admin", tags=["Frontend"])
