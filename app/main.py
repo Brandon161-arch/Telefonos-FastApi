@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.database import engine, Base, get_db, SessionLocal
+from app.core.database import engine, Base, get_db, SessionLocal, migrate_sqlite_schema
 from app.core.seed import seed_database
 from app.api.router import api_router
 from app.modules.inventario.crud import get_brands, get_phones
@@ -21,6 +21,7 @@ from sqlalchemy import func
 async def lifespan(app: FastAPI):
     # Startup: Create tables & seed data
     Base.metadata.create_all(bind=engine)
+    migrate_sqlite_schema()
     db = SessionLocal()
     try:
         seed_database(db)
@@ -96,6 +97,33 @@ def render_tracking_page(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="track.html",
+        context={}
+    )
+
+@app.get("/login", tags=["Frontend"])
+def render_login_page(request: Request):
+    """Página de inicio de sesión y registro de clientes"""
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={}
+    )
+
+@app.get("/verify-email", tags=["Frontend"])
+def render_verify_email_page(request: Request, token: str = ""):
+    """Página que procesa el token de verificación de correo"""
+    return templates.TemplateResponse(
+        request=request,
+        name="verify_email.html",
+        context={"token": token}
+    )
+
+@app.get("/account", tags=["Frontend"])
+def render_account_page(request: Request):
+    """Página de mi cuenta (perfil y órdenes del cliente autenticado)"""
+    return templates.TemplateResponse(
+        request=request,
+        name="account.html",
         context={}
     )
 

@@ -21,4 +21,16 @@ class Settings:
     FIRST_ADMIN_EMAIL: str = os.getenv("FIRST_ADMIN_EMAIL", "admin@electrophone.com")
     FIRST_ADMIN_PASSWORD: str = os.getenv("FIRST_ADMIN_PASSWORD", "admin123456")
 
+    # Email / SMTP para verificación por correo
+    # Si SMTP_HOST está vacío, el correo se "envía" por consola (modo dev)
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "no-reply@electrophone.com")
+    SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "ElectroPhone Store")
+    VERIFICATION_TOKEN_EXPIRE_HOURS: int = int(os.getenv("VERIFICATION_TOKEN_EXPIRE_HOURS", "24"))
+    # URL pública de la app para construir el enlace de verificación
+    APP_BASE_URL: str = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
+
 settings = Settings()

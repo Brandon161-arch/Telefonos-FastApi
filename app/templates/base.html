@@ -32,6 +32,20 @@
                 <a href="/admin" class="nav-btn">⚙️ Panel Admin</a>
                 <a href="/docs" target="_blank" class="nav-btn" title="API Docs Swagger">⚡ Swagger API</a>
 
+                <a href="/login" class="nav-btn" id="btn-nav-login" style="display: none;">👤 Iniciar Sesión</a>
+                <div class="nav-user-menu" id="user-menu" style="display: none;">
+                    <button class="nav-btn" onclick="toggleUserMenu()">👤 <span id="nav-user-name">Mi Cuenta</span> ▾</button>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="user-dropdown-header">
+                            <strong id="dropdown-user-name" style="color:#fff;"></strong>
+                            <small id="dropdown-user-email" style="color: var(--text-dim); display:block;"></small>
+                        </div>
+                        <a href="/account">👤 Mi Cuenta</a>
+                        <a href="/track">📦 Mis Pedidos</a>
+                        <button onclick="handleLogout()" style="background:none;border:none;color:#f87171;text-align:left;padding:0.6rem 1rem;cursor:pointer;width:100%;font-size:0.9rem;">🚪 Cerrar Sesión</button>
+                    </div>
+                </div>
+
                 <button id="btn-open-cart" class="nav-btn cart-btn">
                     <span>🛒 Carrito</span>
                     <span id="cart-count-badge" class="cart-badge">0</span>

@@ -22,3 +22,26 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def migrate_sqlite_schema():
+    """Añade columnas nuevas a tablas existentes en SQLite (CREATE TABLE IF NOT EXISTS no las agrega)."""
+    if not settings.DATABASE_URL.startswith("sqlite"):
+        return
+    import sqlite3
+    db_path = settings.DATABASE_URL.replace("sqlite:///", "")
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    # users: columnas de verificación por correo
+    cur.execute("PRAGMA table_info(users)")
+    cols = {row[1] for row in cur.fetchall()}
+    if "is_verified" not in cols:
+        cur.execute("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0")
+    if "verification_token" not in cols:
+        cur.execute("ALTER TABLE users ADD COLUMN verification_token VARCHAR(255)")
+    if "verification_token_expires" not in cols:
+        cur.execute("ALTER TABLE users ADD COLUMN verification_token_expires DATETIME")
+
+    conn.commit()
+    conn.close()

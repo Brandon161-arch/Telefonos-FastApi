@@ -26,7 +26,65 @@ document.addEventListener('DOMContentLoaded', () => {
     initPriceSlider();
     initFilterListeners();
     loadCatalog();
+    initAuthUI();
 });
+
+// ================= Auth Session (global) =================
+function getCurrentUser() {
+    try {
+        return JSON.parse(localStorage.getItem('electrophone_user') || 'null');
+    } catch (e) {
+        return null;
+    }
+}
+
+function getAuthToken() {
+    return localStorage.getItem('electrophone_token');
+}
+
+function initAuthUI() {
+    const user = getCurrentUser();
+    const loginBtn = document.getElementById('btn-nav-login');
+    const userMenu = document.getElementById('user-menu');
+
+    if (!loginBtn && !userMenu) return;
+
+    if (user) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (userMenu) {
+            userMenu.style.display = 'inline-block';
+            const nameEl = document.getElementById('nav-user-name');
+            if (nameEl) nameEl.innerText = (user.full_name || 'Mi Cuenta').split(' ')[0];
+            const dn = document.getElementById('dropdown-user-name');
+            const de = document.getElementById('dropdown-user-email');
+            if (dn) dn.innerText = user.full_name || 'Mi Cuenta';
+            if (de) de.innerText = user.email || '';
+        }
+    } else {
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (userMenu) userMenu.style.display = 'none';
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        const dd = document.getElementById('user-dropdown');
+        if (dd && !e.target.closest('.nav-user-menu')) {
+            dd.classList.remove('open');
+        }
+    });
+}
+
+function toggleUserMenu() {
+    const dd = document.getElementById('user-dropdown');
+    if (dd) dd.classList.toggle('open');
+}
+
+function handleLogout() {
+    localStorage.removeItem('electrophone_token');
+    localStorage.removeItem('electrophone_user');
+    showToast('Sesión cerrada correctamente', 'info');
+    setTimeout(() => window.location.href = '/', 600);
+}
 
 // ================= Toast Notifications =================
 function showToast(message, type = 'info') {

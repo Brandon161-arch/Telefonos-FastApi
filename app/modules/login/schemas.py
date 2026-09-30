@@ -19,6 +19,7 @@ class UserResponse(UserBase):
     id: int
     is_admin: bool
     is_active: bool
+    is_verified: bool = False
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -27,3 +28,10 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+class VerifyEmailResponse(BaseModel):
+    message: str
+    email: str
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr

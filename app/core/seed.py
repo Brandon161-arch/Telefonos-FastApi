@@ -15,7 +15,8 @@ def seed_database(db: Session) -> None:
             phone_number="+57 310 987 6543",
             address="Carrera 15 # 85-30, Bogotá D.C.",
             is_admin=True,
-            is_active=True
+            is_active=True,
+            is_verified=True
         )
         db.add(admin)
         db.commit()

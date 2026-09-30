@@ -936,3 +936,69 @@ body {
     position: static;
   }
 }
+
+/* Auth Tabs & User Menu */
+.auth-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.auth-tab.active {
+  background: var(--accent-gradient);
+  color: #fff;
+}
+.auth-tab:not(.active):hover {
+  color: #fff;
+}
+
+.nav-user-menu {
+  position: relative;
+}
+.nav-user-menu .nav-btn {
+  white-space: nowrap;
+}
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: all 0.2s ease;
+  z-index: 100;
+  overflow: hidden;
+}
+.user-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.user-dropdown-header {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0.3rem;
+}
+.user-dropdown a {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+.user-dropdown a:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
