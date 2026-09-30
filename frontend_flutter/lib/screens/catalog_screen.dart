@@ -25,10 +25,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
   String _sort = 'created_at';
   int? _brandId;
   List<Brand> _brands = [];
+  double? _minPrice;
+  double? _maxPrice;
+  int? _ramGb;
+  int? _storageGb;
+  bool? _is5g;
   int _total = 0;
   bool _loading = true;
   bool _loadingMore = false;
   bool _hasMore = true;
+
+  bool get _hasActiveFilters =>
+      _brandId != null || _minPrice != null || _maxPrice != null || _ramGb != null || _storageGb != null || _is5g != null;
 
   ApiClient get _api => context.read<ApiClient>();
 
@@ -76,9 +84,22 @@ class _CatalogScreenState extends State<CatalogScreen> {
         limit: _pageSize,
         search: _searchController.text,
         brandId: _brandId,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
+        ramGb: _ramGb,
+        storageGb: _storageGb,
+        is5g: _is5g,
         sortBy: _sort,
       );
-      final total = await _api.getPhoneCount(search: _searchController.text, brandId: _brandId);
+      final total = await _api.getPhoneCount(
+        search: _searchController.text,
+        brandId: _brandId,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
+        ramGb: _ramGb,
+        storageGb: _storageGb,
+        is5g: _is5g,
+      );
       if (!mounted) return;
       setState(() {
         _phones
@@ -106,6 +127,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
         limit: _pageSize,
         search: _searchController.text,
         brandId: _brandId,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
+        ramGb: _ramGb,
+        storageGb: _storageGb,
+        is5g: _is5g,
         sortBy: _sort,
       );
       if (!mounted) return;
@@ -215,7 +241,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Buscar marca o modelo'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Filtros',
+                  onPressed: _openFilters,
+                  icon: Badge(
+                    isLabelVisible: _hasActiveFilters,
+                    child: const Icon(Icons.tune),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 DropdownButton<String>(
                   value: _sort,
                   items: const [
@@ -262,5 +297,100 @@ class _CatalogScreenState extends State<CatalogScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _openFilters() async {
+    // Copias locales para no tocar el estado hasta aplicar
+    double? minPrice = _minPrice;
+    double? maxPrice = _maxPrice;
+    int? ramGb = _ramGb;
+    int? storageGb = _storageGb;
+    bool? is5g = _is5g;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(child: Text('Filtros', style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800))),
+                TextButton(onPressed: () { setSheetState(() { minPrice = null; maxPrice = null; ramGb = null; storageGb = null; is5g = null; }); }, child: const Text('Limpiar')),
+              ]),
+              const SizedBox(height: 8),
+              const Text('Precio máximo', style: TextStyle(color: Colors.white70)),
+              Slider(
+                value: maxPrice ?? 7000000,
+                min: 1000000,
+                max: 7000000,
+                divisions: 12,
+                label: maxPrice == null ? 'Sin límite' : formatCop(maxPrice!),
+                onChanged: (v) => setSheetState(() => maxPrice = v),
+              ),
+              Text(maxPrice == null ? 'Sin límite' : 'Hasta ${formatCop(maxPrice!)}', style: const TextStyle(color: Colors.white60)),
+              const SizedBox(height: 16),
+              _chipRow<int?>(
+                'RAM',
+                const [6, 8, 12, 16],
+                ramGb,
+                (v) => setSheetState(() => ramGb = v),
+                (v) => '$v GB',
+              ),
+              const SizedBox(height: 16),
+              _chipRow<int?>(
+                'Almacenamiento',
+                const [128, 256, 512],
+                storageGb,
+                (v) => setSheetState(() => storageGb = v),
+                (v) => '$v GB',
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Solo 5G'),
+                value: is5g ?? false,
+                onChanged: (v) => setSheetState(() => is5g = v),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    setState(() {
+                      _minPrice = minPrice;
+                      _maxPrice = maxPrice;
+                      _ramGb = ramGb;
+                      _storageGb = storageGb;
+                      _is5g = is5g;
+                    });
+                    Navigator.pop(ctx);
+                    _load(reset: true);
+                  },
+                  child: const Text('Aplicar filtros'),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _chipRow<T>(String label, List<T> options, T? selected, ValueChanged<T?> onSelect, String Function(T) format) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: const TextStyle(color: Colors.white70)),
+      const SizedBox(height: 6),
+      Wrap(spacing: 8, children: [
+        for (final opt in options)
+          ChoiceChip(
+            label: Text(format(opt)),
+            selected: selected == opt,
+            onSelected: (_) => onSelect(selected == opt ? null : opt),
+          ),
+      ]),
+    ]);
   }
 }

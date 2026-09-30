@@ -156,14 +156,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       if (phone.discountPrice != null && phone.discountPrice! < phone.price)
         Text(formatCop(phone.price), style: const TextStyle(color: Colors.white54, decoration: TextDecoration.lineThrough)),
       const SizedBox(height: 12),
-      Text(phone.stock > 0 ? 'Disponible • ${phone.stock} unidades' : 'Agotado', style: TextStyle(color: phone.stock > 0 ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.w600)),
+      _stockIndicator(phone),
       const SizedBox(height: 18),
       FilledButton.icon(
         onPressed: phone.stock > 0 ? () { cart.add(phone); _message('Agregado al carrito', isError: false); } : null,
-        icon: const Icon(Icons.add_shopping_cart),
-        label: const Text('Agregar al carrito'),
+        icon: Icon(phone.stock > 0 ? Icons.add_shopping_cart : Icons.block),
+        label: Text(phone.stock > 0 ? 'Agregar al carrito' : 'Agotado'),
       ),
     ]);
+  }
+
+  Widget _stockIndicator(Phone phone) {
+    if (phone.stock <= 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.error_outline, color: Colors.redAccent, size: 18), SizedBox(width: 6), Text('Sin disponibilidad por el momento', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600))]),
+      );
+    }
+    if (phone.stock <= 5) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+        child: Text('¡Quedan pocas unidades! (${phone.stock})', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.w600)),
+      );
+    }
+    return Text('Disponible • ${phone.stock} unidades', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w600));
   }
 
   Widget _spec(String title, String? value) => SizedBox(width: 210, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12)), const SizedBox(height: 4), Text(value?.isNotEmpty == true ? value! : 'N/D', style: const TextStyle(fontWeight: FontWeight.w600))]));

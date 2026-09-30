@@ -62,6 +62,11 @@ class ApiClient {
     int limit = 12,
     String? search,
     int? brandId,
+    double? minPrice,
+    double? maxPrice,
+    int? ramGb,
+    int? storageGb,
+    bool? is5g,
     String sortBy = 'created_at',
   }) async {
     final query = <String, String>{
@@ -71,16 +76,34 @@ class ApiClient {
     };
     if (search != null && search.trim().isNotEmpty) query['search'] = search.trim();
     if (brandId != null) query['brand_id'] = '$brandId';
+    if (minPrice != null) query['min_price'] = '$minPrice';
+    if (maxPrice != null) query['max_price'] = '$maxPrice';
+    if (ramGb != null) query['ram_gb'] = '$ramGb';
+    if (storageGb != null) query['storage_gb'] = '$storageGb';
+    if (is5g != null) query['is_5g'] = '$is5g';
     final data = await _getMap('/phones', query: query);
     return (data['data'] as List<dynamic>)
         .map((item) => Phone.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
-  Future<int> getPhoneCount({String? search, int? brandId}) async {
+  Future<int> getPhoneCount({
+    String? search,
+    int? brandId,
+    double? minPrice,
+    double? maxPrice,
+    int? ramGb,
+    int? storageGb,
+    bool? is5g,
+  }) async {
     final query = <String, String>{'skip': '0', 'limit': '1'};
     if (search != null && search.trim().isNotEmpty) query['search'] = search.trim();
     if (brandId != null) query['brand_id'] = '$brandId';
+    if (minPrice != null) query['min_price'] = '$minPrice';
+    if (maxPrice != null) query['max_price'] = '$maxPrice';
+    if (ramGb != null) query['ram_gb'] = '$ramGb';
+    if (storageGb != null) query['storage_gb'] = '$storageGb';
+    if (is5g != null) query['is_5g'] = '$is5g';
     final data = await _getMap('/phones', query: query);
     return (data['total'] as num).toInt();
   }
