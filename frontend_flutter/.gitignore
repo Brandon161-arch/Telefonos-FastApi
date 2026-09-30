@@ -1,0 +1,19 @@
+# Flutter build artifacts
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Platform generated
+frontend_flutter/web/
+frontend_flutter/android/
+frontend_flutter/ios/
+frontend_flutter/linux/
+frontend_flutter/macos/
+frontend_flutter/windows/
+
+# Misc
+*.iml
+.idea/
+.vscode/
