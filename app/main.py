@@ -73,6 +73,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Log de diagnóstico: muestra qué orígenes CORS se cargaron realmente
+print(f"[CORS] Orígenes permitidos: {_allow_origins} | credentials={_allow_credentials}")
+
 # Static files & Templates directory configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 static_dir = os.path.join(BASE_DIR, "static")
