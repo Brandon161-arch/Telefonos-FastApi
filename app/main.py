@@ -85,6 +85,11 @@ def format_cop(value):
 
 templates.env.filters["cop"] = format_cop
 
+@app.get("/health", tags=["Sistema"])
+def health_check():
+    """Endpoint de salud para el balanceador/proxy (Coolify health check)."""
+    return {"status": "ok"}
+
 # Register Master API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
