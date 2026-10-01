@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import engine, Base, get_db, SessionLocal, migrate_sqlite_schema
 from app.core.seed import seed_database
+from app.core.rate_limit import RateLimitMiddleware
 from app.api.router import api_router
 from app.modules.inventario.crud import get_brands, get_phones, get_phone_by_slug
 from app.modules.ventas.models import Order
@@ -48,11 +49,18 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Rate limiting para mitigar fuerza bruta en autenticación
+app.add_middleware(RateLimitMiddleware, limit=10, window_seconds=60)
+
 # CORS configuration
+_cors_origins = settings.CORS_ORIGINS
+_allow_origins = ["*"] if _cors_origins.strip() == "*" else [o.strip() for o in _cors_origins.split(",") if o.strip()]
+_allow_credentials = _allow_origins != ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=_allow_origins,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
