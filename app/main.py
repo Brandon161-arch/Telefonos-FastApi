@@ -54,7 +54,15 @@ app.add_middleware(RateLimitMiddleware, limit=10, window_seconds=60)
 
 # CORS configuration
 _cors_origins = settings.CORS_ORIGINS
-_allow_origins = ["*"] if _cors_origins.strip() == "*" else [o.strip() for o in _cors_origins.split(",") if o.strip()]
+if _cors_origins.strip() == "*":
+    _allow_origins = ["*"]
+else:
+    # Limpia espacios y barras finales para que coincidan exactamente con el origen
+    _allow_origins = [
+        o.strip().rstrip("/")
+        for o in _cors_origins.split(",")
+        if o.strip()
+    ]
 _allow_credentials = _allow_origins != ["*"]
 
 app.add_middleware(
