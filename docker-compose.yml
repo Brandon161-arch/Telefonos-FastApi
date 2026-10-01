@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: electrophone-backend
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DATABASE_URL: sqlite:///./data/telefonos.db
+      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-admin@electrophone.com}
+      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:-admin123456}
+      APP_BASE_URL: ${APP_BASE_URL:-https://api.example.com}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@electrophone.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-ElectroPhone Store}
+      VERIFICATION_TOKEN_EXPIRE_HOURS: ${VERIFICATION_TOKEN_EXPIRE_HOURS:-24}
+    volumes:
+      - backend_data:/app/data
+    # En Coolify, los puertos se exponen vía el proxy (no hace falta mapear aquí)
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      context: ./frontend_flutter
+      dockerfile: Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL:-https://api.example.com/api/v1}
+    container_name: electrophone-frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+
+volumes:
+  backend_data:

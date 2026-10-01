@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Git
+.git/
+.gitignore
+
+# Bases de datos (se crean en el volumen)
+*.db
+*.sqlite3
+
+# Frontend Flutter (se construye en su propio Dockerfile)
+frontend_flutter/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+
+# Docs / misc
+README.md
+.env
+.env.example
+
+# IDE
+.vscode/
+.idea/
