@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../services/api_client.dart';
 import '../state/cart_controller.dart';
+import '../theme/app_theme.dart';
 import '../widgets/store_scaffold.dart';
 
 class CartScreen extends StatefulWidget {
@@ -21,145 +22,92 @@ class _CartScreenState extends State<CartScreen> {
   final _city = TextEditingController();
   final _postal = TextEditingController();
   final _coupon = TextEditingController();
-  String _payment = 'credit_card';
+
+  String _payment = 'nequi';
   bool _submitting = false;
   String? _couponCode;
   double? _couponDiscount;
   bool _validatingCoupon = false;
 
   @override
-  void dispose() {
-    _name.dispose(); _email.dispose(); _phone.dispose(); _address.dispose(); _city.dispose(); _postal.dispose(); _coupon.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _prefillUser();
+  }
+
+  Future<void> _prefillUser() async {
+    final api = context.read<ApiClient>();
+    final user = await api.getSavedUser();
+    if (user != null) {
+      setState(() {
+        if (_name.text.isEmpty) _name.text = user['full_name']?.toString() ?? '';
+        if (_email.text.isEmpty) _email.text = user['email']?.toString() ?? '';
+        if (_phone.text.isEmpty) _phone.text = user['phone_number']?.toString() ?? '';
+        if (_address.text.isEmpty) _address.text = user['address']?.toString() ?? '';
+      });
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final cart = context.watch<CartController>();
-    final api = context.read<ApiClient>();
-    return StoreScaffold(
-      title: 'Tu carrito',
-      body: cart.lines.isEmpty
-          ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.remove_shopping_cart_outlined, size: 58), const SizedBox(height: 12), const Text('Tu carrito está vacío'), const SizedBox(height: 12), OutlinedButton(onPressed: () => context.go('/'), child: const Text('Ver catálogo'))]))
-          : ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 900), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Productos', style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  ...cart.lines.map((line) => Card(child: ListTile(
-                    leading: SizedBox(width: 56, child: Image.network(line.phone.imageUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.smartphone))),
-                    title: Text(line.phone.name),
-                    subtitle: Text('${formatCop(line.phone.currentPrice)} • ${line.phone.color}'),
-                    trailing: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
-                      IconButton(onPressed: () => cart.changeQuantity(line.phone.id, -1), icon: const Icon(Icons.remove_circle_outline)),
-                      Text('${line.quantity}'),
-                      IconButton(onPressed: () => cart.changeQuantity(line.phone.id, 1), icon: const Icon(Icons.add_circle_outline)),
-                      IconButton(onPressed: () => cart.remove(line.phone.id), icon: const Icon(Icons.delete_outline, color: Colors.redAccent)),
-                    ]),
-                  ))),
-                  const SizedBox(height: 18),
-                  Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    _summaryRow('Subtotal', cart.subtotal),
-                    _summaryRow('Envío', cart.shipping, free: cart.shipping == 0),
-                    if (_couponDiscount != null)
-                      _summaryRow('Descuento (${_couponCode ?? ''})', -_couponDiscount!, free: false),
-                    const Divider(height: 24),
-                    _summaryRow('Total', cart.total, bold: true),
-                  ]))),
-                  const SizedBox(height: 26),
-                  Text('Cupón de descuento', style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  Card(child: Padding(padding: const EdgeInsets.all(18), child: Row(children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _coupon,
-                        textCapitalization: TextCapitalization.characters,
-                        decoration: const InputDecoration(hintText: 'Código de cupón'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    FilledButton.tonal(
-                      onPressed: _validatingCoupon ? null : () => _applyCoupon(api, cart.subtotal),
-                      child: Text(_validatingCoupon ? 'Validando…' : 'Aplicar'),
-                    ),
-                  ]))),
-                  const SizedBox(height: 26),
-                  Text('Datos de envío y pago', style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  Form(key: _formKey, child: Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(children: [
-                    _field(_name, 'Nombre completo'),
-                    _field(_email, 'Correo electrónico', keyboard: TextInputType.emailAddress),
-                    _field(_phone, 'Teléfono', keyboard: TextInputType.phone),
-                    _field(_address, 'Dirección de envío'),
-                    _field(_city, 'Ciudad'),
-                    _field(_postal, 'Código postal / barrio', required: false),
-                    DropdownButtonFormField<String>(
-                      initialValue: _payment,
-                      decoration: const InputDecoration(labelText: 'Método de pago'),
-                      items: const [
-                        DropdownMenuItem(value: 'pse', child: Text('PSE')),
-                        DropdownMenuItem(value: 'nequi', child: Text('Nequi / Daviplata')),
-                        DropdownMenuItem(value: 'credit_card', child: Text('Tarjeta')),
-                        DropdownMenuItem(value: 'cash_on_delivery', child: Text('Contra entrega')),
-                      ],
-                      onChanged: (value) { if (value != null) setState(() => _payment = value); },
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(width: double.infinity, child: FilledButton.icon(
-                      onPressed: _submitting ? null : () => _checkout(cart, api),
-                      icon: const Icon(Icons.lock_outline),
-                      label: Text(_submitting ? 'Procesando…' : 'Confirmar pedido'),
-                    )),
-                  ])))),
-                ]))),
-              ],
-            ),
-    );
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _phone.dispose();
+    _address.dispose();
+    _city.dispose();
+    _postal.dispose();
+    _coupon.dispose();
+    super.dispose();
   }
 
-  Widget _summaryRow(String label, double value, {bool bold = false, bool free = false}) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(children: [Expanded(child: Text(label, style: TextStyle(fontWeight: bold ? FontWeight.w800 : null))), Text(free ? 'Gratis' : formatCop(value), style: TextStyle(fontWeight: bold ? FontWeight.w900 : null, fontSize: bold ? 18 : null))]),
-      );
-
-  Widget _field(TextEditingController controller, String label, {TextInputType? keyboard, bool required = true}) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: TextFormField(
-          controller: controller,
-          keyboardType: keyboard,
-          decoration: InputDecoration(labelText: label),
-          validator: (value) => required && (value == null || value.trim().isEmpty) ? 'Este campo es obligatorio' : null,
-        ),
-      );
-
   Future<void> _applyCoupon(ApiClient api, double subtotal) async {
-    final code = _coupon.text.trim().toUpperCase();
+    final code = _coupon.text.trim();
     if (code.isEmpty) return;
     setState(() => _validatingCoupon = true);
     try {
-      final result = await api.validateCoupon(code, subtotal);
+      final res = await api.validateCoupon(code, subtotal);
+      final discount = (res['discount'] as num?)?.toDouble() ?? 0;
       if (!mounted) return;
       setState(() {
         _couponCode = code;
-        _couponDiscount = (result['discount_amount'] as num).toDouble();
+        _couponDiscount = discount;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cupón aplicado: ${formatCop(_couponDiscount!)} de descuento')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Cupón aplicado! Descuento de ${formatCop(discount)}'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       if (mounted) {
-        setState(() { _couponCode = null; _couponDiscount = null; });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _validatingCoupon = false);
     }
   }
 
-  Future<void> _checkout(CartController cart, ApiClient api) async {
+  Future<void> _submitCheckout(CartController cart, ApiClient api) async {
     if (!_formKey.currentState!.validate()) return;
+    if (cart.lines.isEmpty) return;
+
     setState(() => _submitting = true);
     try {
-      final order = await api.createOrder({
+      final itemsPayload = cart.lines
+          .map((line) => {
+                'phone_id': line.phone.id,
+                'quantity': line.quantity,
+              })
+          .toList();
+
+      final orderData = await api.createOrder({
         'customer_name': _name.text.trim(),
         'customer_email': _email.text.trim(),
         'customer_phone': _phone.text.trim(),
@@ -167,20 +115,493 @@ class _CartScreenState extends State<CartScreen> {
         'city': _city.text.trim(),
         'postal_code': _postal.text.trim(),
         'payment_method': _payment,
-        if (_couponCode != null) 'coupon_code': _couponCode,
-        'items': cart.lines.map((line) => {'phone_id': line.phone.id, 'quantity': line.quantity}).toList(),
+        'coupon_code': _couponCode,
+        'items': itemsPayload,
       });
+
       await cart.clear();
+
       if (!mounted) return;
-      await showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
-        title: const Text('¡Pedido realizado!'),
-        content: Text('Tu código de seguimiento es ${order['order_number']}. Guarda este código para consultar tu pedido.'),
-        actions: [TextButton(onPressed: () { Navigator.pop(dialogContext); context.go('/'); }, child: const Text('Volver a la tienda'))],
-      ));
+      final orderNumber = orderData['order_number'] ?? 'ORD-COMPLETED';
+
+      // Success Dialog
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: AppColors.bgSecondary,
+          title: const Row(
+            children: [
+              Text('🎉', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 10),
+              Text('¡Pedido Confirmado!', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Tu compra ha sido registrada con éxito en ElectroPhone.', style: TextStyle(color: AppColors.textMuted)),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0x14FFFFFF),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.borderGlow),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Número de orden:', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                    Text(
+                      '$orderNumber',
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Hemos enviado la confirmación y los detalles de envío a tu correo electrónico.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.go('/track');
+              },
+              child: const Text('Rastrear mi pedido'),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = context.watch<CartController>();
+    final api = context.read<ApiClient>();
+
+    return StoreScaffold(
+      title: 'Tu Carrito',
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            child: cart.lines.isEmpty
+                ? _buildEmptyCart(context)
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 850;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Carrito de Compras (${cart.itemCount} artículo${cart.itemCount == 1 ? '' : 's'})',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 22,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => cart.clear(),
+                                icon: const Icon(Icons.delete_sweep_outlined, size: 18, color: AppColors.danger),
+                                label: const Text('Vaciar carrito', style: TextStyle(color: AppColors.danger)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          isWide
+                              ? Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(flex: 6, child: _buildItemsList(cart)),
+                                    const SizedBox(width: 32),
+                                    Expanded(flex: 5, child: _buildCheckoutSummary(cart, api)),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    _buildItemsList(cart),
+                                    const SizedBox(height: 24),
+                                    _buildCheckoutSummary(cart, api),
+                                  ],
+                                ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================= EMPTY CART =================
+  Widget _buildEmptyCart(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(48),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0x14FFFFFF),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Icon(Icons.shopping_bag_outlined, size: 40, color: AppColors.textDim),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Tu carrito está vacío',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Explora los smartphones más recientes con las mejores ofertas de Colombia.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+            GradientButton(
+              width: 220,
+              onPressed: () => context.go('/'),
+              child: const Text('EXPLORAR CATÁLOGO'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================= ITEMS LIST =================
+  Widget _buildItemsList(CartController cart) {
+    return Column(
+      children: cart.lines.map((line) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              // Product thumbnail
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F1422),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: line.phone.imageUrl.isEmpty
+                    ? const Icon(Icons.smartphone, color: AppColors.textDim)
+                    : Image.network(
+                        line.phone.imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.smartphone, color: AppColors.textDim),
+                      ),
+              ),
+              const SizedBox(width: 14),
+
+              // Product Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      line.phone.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${line.phone.ramGb}GB / ${line.phone.storageGb}GB • ${line.phone.color}',
+                      style: const TextStyle(color: AppColors.textDim, fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      formatCop(line.phone.currentPrice),
+                      style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w800, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Quantity Controls
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0x14FFFFFF),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove, size: 14),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => cart.changeQuantity(line.phone.id, -1),
+                    ),
+                    Text('${line.quantity}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 14),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => cart.changeQuantity(line.phone.id, 1),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Delete button
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 20),
+                tooltip: 'Eliminar del carrito',
+                onPressed: () => cart.remove(line.phone.id),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ================= CHECKOUT & SUMMARY =================
+  Widget _buildCheckoutSummary(CartController cart, ApiClient api) {
+    final discount = _couponDiscount ?? 0;
+    final finalTotal = (cart.total - discount).clamp(0, double.infinity).toDouble();
+
+    return Column(
+      children: [
+        // Summary Card
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Resumen de Orden',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+              ),
+              const SizedBox(height: 14),
+              _summaryLine('Subtotal', formatCop(cart.subtotal)),
+              _summaryLine(
+                'Envío nacional',
+                cart.shipping == 0 ? 'GRATIS 🚚' : formatCop(cart.shipping),
+                highlight: cart.shipping == 0,
+              ),
+              if (_couponDiscount != null)
+                _summaryLine('Cupón ($_couponCode)', '- ${formatCop(_couponDiscount!)}', isDiscount: true),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total a Pagar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                  Text(
+                    formatCop(finalTotal),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Coupon Box
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _coupon,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: const InputDecoration(
+                        hintText: 'CUPÓN DE DESCUENTO',
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.tonal(
+                    onPressed: _validatingCoupon ? null : () => _applyCoupon(api, cart.subtotal),
+                    child: Text(_validatingCoupon ? '...' : 'Aplicar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Shipping Form & Payment
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Datos de Entrega y Facturación',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+                ),
+                const SizedBox(height: 14),
+                _field(_name, 'Nombre y Apellidos completos'),
+                const SizedBox(height: 10),
+                _field(_email, 'Correo electrónico para confirmación', keyboard: TextInputType.emailAddress),
+                const SizedBox(height: 10),
+                _field(_phone, 'Teléfono celular de contacto', keyboard: TextInputType.phone),
+                const SizedBox(height: 10),
+                _field(_address, 'Dirección exacta de entrega (Calle / Carrera / Apto)'),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: _field(_city, 'Ciudad / Municipio')),
+                    const SizedBox(width: 10),
+                    Expanded(child: _field(_postal, 'Barrio / Código Postal', required: false)),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Payment Method Selector
+                const Text('Método de Pago:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _payment,
+                  dropdownColor: AppColors.bgSecondary,
+                  decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+                  items: const [
+                    DropdownMenuItem(value: 'nequi', child: Text('📱 Nequi (Transferencia Directa)')),
+                    DropdownMenuItem(value: 'daviplata', child: Text('📱 Daviplata')),
+                    DropdownMenuItem(value: 'pse', child: Text('🏛️ PSE / Transferencia Bancaria')),
+                    DropdownMenuItem(value: 'credit_card', child: Text('💳 Tarjeta de Crédito / Débito')),
+                    DropdownMenuItem(value: 'cash_on_delivery', child: Text('💵 Pago Contra Entrega (Solo Bogotá)')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => _payment = val);
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // Submit Button
+                GradientButton(
+                  height: 52,
+                  onPressed: _submitting ? null : () => _submitCheckout(cart, api),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_submitting) ...[
+                        const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                        const SizedBox(width: 10),
+                        const Text('PROCESANDO COMPRA...'),
+                      ] else ...[
+                        const Icon(Icons.lock_outline, size: 18, color: Colors.white),
+                        const SizedBox(width: 8),
+                        const Text('CONFIRMAR Y FINALIZAR COMPRA', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _summaryLine(String label, String value, {bool highlight = false, bool isDiscount = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 13.5)),
+          Text(
+            value,
+            style: TextStyle(
+              color: isDiscount
+                  ? AppColors.danger
+                  : highlight
+                      ? AppColors.success
+                      : Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _field(
+    TextEditingController controller,
+    String label, {
+    bool required = true,
+    TextInputType keyboard = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboard,
+      validator: required
+          ? (v) => v == null || v.trim().isEmpty ? 'Este campo es obligatorio' : null
+          : null,
+      decoration: InputDecoration(
+        labelText: label,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      ),
+    );
   }
 }
