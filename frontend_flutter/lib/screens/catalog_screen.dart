@@ -185,15 +185,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Hero Section matching Jinja
+              // 1. Hero Section with Floating Phone animation
               _buildHero(context, screenWidth),
 
-              // 2. Brands Bar
+              // 2. Animated Brands Bar
               _buildBrandsSection(context),
 
               const SizedBox(height: 24),
 
-              // 3. Main Catalog (Sidebar Filters + Catalog Content)
+              // 3. Main Catalog Area (Sidebar Filters + Products Grid)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: isDesktop
@@ -208,7 +208,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           const SizedBox(width: 24),
                           // Right Catalog Grid
                           Expanded(
-                            child: _buildCatalogContent(context, screenWidth - 320),
+                            child:
+                                _buildCatalogContent(context, screenWidth - 320),
                           ),
                         ],
                       )
@@ -258,7 +259,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 const SizedBox(height: 14),
                 _heroParagraph(),
                 const SizedBox(height: 20),
-                _heroStats(isCompact: true),
+                _heroStats(),
               ],
             )
           : Row(
@@ -275,14 +276,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       const SizedBox(height: 16),
                       _heroParagraph(),
                       const SizedBox(height: 24),
-                      _heroStats(isCompact: false),
+                      _heroStats(),
                     ],
                   ),
                 ),
                 const SizedBox(width: 36),
                 Expanded(
                   flex: 4,
-                  child: _heroFeaturedCard(context),
+                  child: FloatingPhoneWidget(
+                    child: _heroFeaturedCard(context),
+                  ),
                 ),
               ],
             ),
@@ -357,7 +360,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  Widget _heroStats({required bool isCompact}) {
+  Widget _heroStats() {
     return Wrap(
       spacing: 12,
       runSpacing: 10,
@@ -430,7 +433,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80',
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(Icons.smartphone, size: 72, color: AppColors.textDim),
+                  child: Icon(Icons.smartphone,
+                      size: 72, color: AppColors.textDim),
                 ),
               ),
             ),
@@ -528,7 +532,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
           _load(reset: true);
         },
         borderRadius: BorderRadius.circular(14),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             gradient: selected ? AppColors.primaryGradient : null,
@@ -594,10 +599,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 TextButton(
                   onPressed: _resetFilters,
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     visualDensity: VisualDensity.compact,
                   ),
-                  child: const Text('Limpiar', style: TextStyle(fontSize: 12, color: AppColors.accent)),
+                  child: const Text('Limpiar',
+                      style: TextStyle(fontSize: 12, color: AppColors.accent)),
                 ),
             ],
           ),
@@ -620,7 +627,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       },
                     )
                   : null,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
           ),
 
@@ -653,7 +661,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('\$ 1.000.000', style: TextStyle(color: AppColors.textDim, fontSize: 11.5)),
+                  const Text('\$ 1.000.000',
+                      style:
+                          TextStyle(color: AppColors.textDim, fontSize: 11.5)),
                   Text(
                     _maxPrice == null || _maxPrice == 7000000
                         ? 'Hasta \$ 7.000.000'
@@ -678,7 +688,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
             contentPadding: EdgeInsets.zero,
             title: const Text(
               'Solo celulares 5G ⚡',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13.5),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5),
             ),
             value: _is5g ?? false,
             activeThumbColor: AppColors.accent,
@@ -699,11 +712,31 @@ class _CatalogScreenState extends State<CatalogScreen> {
             spacing: 6,
             runSpacing: 6,
             children: [
-              _radioChip('Todas', null, _ramGb, (v) => setState(() { _ramGb = v; _load(reset: true); })),
-              _radioChip('6 GB', 6, _ramGb, (v) => setState(() { _ramGb = v; _load(reset: true); })),
-              _radioChip('8 GB', 8, _ramGb, (v) => setState(() { _ramGb = v; _load(reset: true); })),
-              _radioChip('12 GB', 12, _ramGb, (v) => setState(() { _ramGb = v; _load(reset: true); })),
-              _radioChip('16 GB', 16, _ramGb, (v) => setState(() { _ramGb = v; _load(reset: true); })),
+              _radioChip('Todas', null, _ramGb,
+                  (v) => setState(() {
+                        _ramGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('6 GB', 6, _ramGb,
+                  (v) => setState(() {
+                        _ramGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('8 GB', 8, _ramGb,
+                  (v) => setState(() {
+                        _ramGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('12 GB', 12, _ramGb,
+                  (v) => setState(() {
+                        _ramGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('16 GB', 16, _ramGb,
+                  (v) => setState(() {
+                        _ramGb = v;
+                        _load(reset: true);
+                      })),
             ],
           ),
 
@@ -718,10 +751,26 @@ class _CatalogScreenState extends State<CatalogScreen> {
             spacing: 6,
             runSpacing: 6,
             children: [
-              _radioChip('Todos', null, _storageGb, (v) => setState(() { _storageGb = v; _load(reset: true); })),
-              _radioChip('128 GB', 128, _storageGb, (v) => setState(() { _storageGb = v; _load(reset: true); })),
-              _radioChip('256 GB', 256, _storageGb, (v) => setState(() { _storageGb = v; _load(reset: true); })),
-              _radioChip('512 GB', 512, _storageGb, (v) => setState(() { _storageGb = v; _load(reset: true); })),
+              _radioChip('Todos', null, _storageGb,
+                  (v) => setState(() {
+                        _storageGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('128 GB', 128, _storageGb,
+                  (v) => setState(() {
+                        _storageGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('256 GB', 256, _storageGb,
+                  (v) => setState(() {
+                        _storageGb = v;
+                        _load(reset: true);
+                      })),
+              _radioChip('512 GB', 512, _storageGb,
+                  (v) => setState(() {
+                        _storageGb = v;
+                        _load(reset: true);
+                      })),
             ],
           ),
         ],
@@ -751,7 +800,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return InkWell(
       onTap: () => onSelected(value),
       borderRadius: BorderRadius.circular(8),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryLight : const Color(0x14FFFFFF),
@@ -792,7 +842,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   decoration: const InputDecoration(
                     hintText: 'Buscar teléfono o marca...',
                     prefixIcon: Icon(Icons.search, size: 18),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 ),
               ),
@@ -800,7 +851,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
               FilledButton.tonal(
                 onPressed: _openMobileFilters,
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -832,7 +884,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          padding: EdgeInsets.fromLTRB(
+              20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
           decoration: const BoxDecoration(
             color: AppColors.bgSecondary,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -844,7 +897,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Filtros Avanzados', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+                  const Text('Filtros Avanzados',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white)),
                   TextButton(
                     onPressed: () {
                       setSheetState(() {
@@ -854,12 +911,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         is5g = null;
                       });
                     },
-                    child: const Text('Restablecer', style: TextStyle(color: AppColors.accent)),
+                    child: const Text('Restablecer',
+                        style: TextStyle(color: AppColors.accent)),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              const Text('Precio Máximo', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+              const Text('Precio Máximo',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700, color: Colors.white)),
               Slider(
                 value: maxPrice ?? 7000000,
                 min: 1000000,
@@ -869,13 +929,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 onChanged: (v) => setSheetState(() => maxPrice = v),
               ),
               Text(
-                maxPrice == null || maxPrice == 7000000 ? 'Sin límite' : 'Hasta ${formatCop(maxPrice!)}',
-                style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600, fontSize: 13),
+                maxPrice == null || maxPrice == 7000000
+                    ? 'Sin límite'
+                    : 'Hasta ${formatCop(maxPrice!)}',
+                style: const TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13),
               ),
               const SizedBox(height: 16),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Solo celulares 5G ⚡', style: TextStyle(color: Colors.white)),
+                title: const Text('Solo celulares 5G ⚡',
+                    style: TextStyle(color: Colors.white)),
                 value: is5g ?? false,
                 activeThumbColor: AppColors.accent,
                 onChanged: (v) => setSheetState(() => is5g = v ? true : null),
@@ -937,12 +1003,25 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     value: _sort,
                     underline: const SizedBox(),
                     dropdownColor: AppColors.bgSecondary,
-                    icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
+                    icon: const Icon(Icons.arrow_drop_down,
+                        color: AppColors.textMuted),
                     items: const [
-                      DropdownMenuItem(value: 'created_at', child: Text('Novedades', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(value: 'price_asc', child: Text('Precio: Menor a Mayor', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(value: 'price_desc', child: Text('Precio: Mayor a Menor', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(value: 'rating', child: Text('Mejor Valorados', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(
+                          value: 'created_at',
+                          child: Text('Novedades',
+                              style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(
+                          value: 'price_asc',
+                          child: Text('Precio: Menor a Mayor',
+                              style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(
+                          value: 'price_desc',
+                          child: Text('Precio: Mayor a Menor',
+                              style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(
+                          value: 'rating',
+                          child: Text('Mejor Valorados',
+                              style: TextStyle(fontSize: 13))),
                     ],
                     onChanged: (val) {
                       if (val == null) return;
@@ -958,32 +1037,33 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
         const SizedBox(height: 16),
 
-        // Catalog Grid or States
+        // Skeleton Shimmer Loading or States
         if (_error != null)
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: AppColors.bgCard,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.danger.withValues(alpha: 0.5)),
+              border:
+                  Border.all(color: AppColors.danger.withValues(alpha: 0.5)),
             ),
             child: Column(
               children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+                const Icon(Icons.error_outline,
+                    size: 48, color: AppColors.danger),
                 const SizedBox(height: 12),
-                Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)),
+                Text(_error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white)),
                 const SizedBox(height: 16),
-                FilledButton(onPressed: () => _load(reset: true), child: const Text('Reintentar')),
+                FilledButton(
+                    onPressed: () => _load(reset: true),
+                    child: const Text('Reintentar')),
               ],
             ),
           )
         else if (_loading)
-          const Padding(
-            padding: EdgeInsets.all(60),
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          )
+          _buildShimmerGrid()
         else if (_phones.isEmpty)
           Container(
             padding: const EdgeInsets.all(40),
@@ -998,7 +1078,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'No se encontraron teléfonos con esos criterios',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -1028,7 +1111,23 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   crossAxisSpacing: 16,
                   childAspectRatio: w < 650 ? 0.95 : 0.68,
                 ),
-                itemBuilder: (context, index) => PhoneCard(phone: _phones[index]),
+                itemBuilder: (context, index) {
+                  return TweenAnimationBuilder<double>(
+                    duration: Duration(milliseconds: 250 + (index % 6) * 50),
+                    tween: Tween<double>(begin: 0.0, end: 1.0),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, (1.0 - value) * 15),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: PhoneCard(phone: _phones[index]),
+                  );
+                },
               );
             },
           ),
@@ -1038,13 +1137,74 @@ class _CatalogScreenState extends State<CatalogScreen> {
               child: _loadingMore
                   ? const CircularProgressIndicator(color: AppColors.primary)
                   : Text(
-                      _hasMore ? 'Desplázate para ver más productos' : '✓ Has llegado al final del catálogo',
-                      style: const TextStyle(color: AppColors.textDim, fontSize: 13),
+                      _hasMore
+                          ? 'Desplázate para ver más productos'
+                          : '✓ Has llegado al final del catálogo',
+                      style: const TextStyle(
+                          color: AppColors.textDim, fontSize: 13),
                     ),
             ),
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildShimmerGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final cols = w > 1000 ? 3 : w > 650 ? 2 : 1;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 6,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: w < 650 ? 0.95 : 0.68,
+          ),
+          itemBuilder: (context, index) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: ShimmerLoadingBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        borderRadius: 14,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 14),
+                  ShimmerLoadingBox(width: 80, height: 12),
+                  SizedBox(height: 8),
+                  ShimmerLoadingBox(width: 160, height: 16),
+                  SizedBox(height: 8),
+                  ShimmerLoadingBox(width: 110, height: 12),
+                  SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ShimmerLoadingBox(width: 100, height: 20),
+                      ShimmerLoadingBox(width: 36, height: 36, borderRadius: 10),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

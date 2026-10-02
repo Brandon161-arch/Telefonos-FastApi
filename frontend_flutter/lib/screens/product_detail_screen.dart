@@ -44,7 +44,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() => _reviewsLoading = true);
     try {
       final reviews = await _api.getReviews(id);
-      if (mounted) setState(() { _reviews = reviews; _reviewsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _reviews = reviews;
+          _reviewsLoading = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _reviewsLoading = false);
     }
@@ -101,7 +106,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Padding(
               padding: EdgeInsets.all(80),
-              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary)),
             );
           }
           if (snapshot.hasError || !snapshot.hasData) {
@@ -111,14 +117,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+                    const Icon(Icons.error_outline,
+                        size: 48, color: AppColors.danger),
                     const SizedBox(height: 12),
                     Text(
-                      snapshot.error?.toString() ?? 'No encontramos este teléfono.',
+                      snapshot.error?.toString() ??
+                          'No encontramos este teléfono.',
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     const SizedBox(height: 16),
-                    FilledButton(onPressed: () => context.go('/'), child: const Text('Volver a la tienda')),
+                    FilledButton(
+                        onPressed: () => context.go('/'),
+                        child: const Text('Volver a la tienda')),
                   ],
                 ),
               ),
@@ -140,7 +150,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     _buildBreadcrumb(phone),
                     const SizedBox(height: 20),
 
-                    // Top Image & Details (2 columns on desktop)
+                    // Top Image & Details
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth > 800;
@@ -148,9 +158,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ? Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(flex: 5, child: _buildImageShowcase(phone)),
+                                  Expanded(
+                                      flex: 5,
+                                      child: _buildImageShowcase(phone)),
                                   const SizedBox(width: 36),
-                                  Expanded(flex: 6, child: _buildMainInfo(phone)),
+                                  Expanded(
+                                      flex: 6, child: _buildMainInfo(phone)),
                                 ],
                               )
                             : Column(
@@ -193,18 +206,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       children: [
         InkWell(
           onTap: () => context.go('/'),
-          child: const Text('Inicio', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          child: const Text('Inicio',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
         ),
-        const Text('  /  ', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        const Text('  /  ',
+            style: TextStyle(color: AppColors.textDim, fontSize: 13)),
         if (phone.brandName != null) ...[
-          Text(phone.brandName!, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-          const Text('  /  ', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+          Text(phone.brandName!,
+              style:
+                  const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          const Text('  /  ',
+              style: TextStyle(color: AppColors.textDim, fontSize: 13)),
         ],
         Expanded(
           child: Text(
             phone.name,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ),
       ],
@@ -224,6 +243,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Stack(
         fit: StackFit.expand,
@@ -235,12 +261,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             padding: const EdgeInsets.all(20),
             child: phone.imageUrl.isEmpty
-                ? const Center(child: Icon(Icons.smartphone, size: 96, color: AppColors.textDim))
+                ? const Center(
+                    child: Icon(Icons.smartphone,
+                        size: 96, color: AppColors.textDim))
                 : Image.network(
                     phone.imageUrl,
                     fit: BoxFit.contain,
+                    frameBuilder:
+                        (context, child, frame, wasSynchronouslyLoaded) {
+                      if (wasSynchronouslyLoaded) return child;
+                      return AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: const Duration(milliseconds: 300),
+                        child: child,
+                      );
+                    },
                     errorBuilder: (_, __, ___) => const Center(
-                      child: Icon(Icons.smartphone, size: 96, color: AppColors.textDim),
+                      child: Icon(Icons.smartphone,
+                          size: 96, color: AppColors.textDim),
                     ),
                   ),
           ),
@@ -249,14 +287,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   gradient: AppColors.accentGradientOrange,
                   borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF97316).withValues(alpha: 0.4),
+                      blurRadius: 8,
+                    ),
+                  ],
                 ),
                 child: const Text(
                   '🔥 OFERTA',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 11),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11),
                 ),
               ),
             ),
@@ -280,10 +328,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           spacing: 6,
           runSpacing: 6,
           children: [
-            if (phone.is5g)
-              _badge('5G ULTRA', AppColors.accent),
-            if (phone.isFeatured)
-              _badge('DESTACADO', AppColors.primary),
+            if (phone.is5g) _badge('5G ULTRA', AppColors.accent),
+            if (phone.isFeatured) _badge('DESTACADO', AppColors.primary),
             _badge('${phone.ramGb}GB RAM', Colors.white70),
             _badge('${phone.storageGb}GB', Colors.white70),
           ],
@@ -334,8 +380,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
         // Description
         Text(
-          phone.description ?? 'Smartphone libre para cualquier operador en Colombia con garantía directa oficial.',
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 14.5, height: 1.55),
+          phone.description ??
+              'Smartphone libre para cualquier operador en Colombia con garantía directa oficial.',
+          style: const TextStyle(
+              color: AppColors.textMuted, fontSize: 14.5, height: 1.55),
         ),
 
         const SizedBox(height: 20),
@@ -365,14 +413,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.danger.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         'Ahorras ${formatCop(phone.price - phone.currentPrice)}',
-                        style: const TextStyle(color: AppColors.danger, fontSize: 11, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                            color: AppColors.danger,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700),
                       ),
                     ),
                   ],
@@ -403,13 +455,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         Row(
           children: [
             Icon(
-              phone.stock > 0 ? Icons.check_circle_outline : Icons.cancel_outlined,
+              phone.stock > 0
+                  ? Icons.check_circle_outline
+                  : Icons.cancel_outlined,
               size: 18,
               color: phone.stock > 0 ? AppColors.success : AppColors.danger,
             ),
             const SizedBox(width: 6),
             Text(
-              phone.stock > 0 ? 'Disponible — ${phone.stock} unidades en bodega' : 'Agotado temporalmente',
+              phone.stock > 0
+                  ? 'Disponible — ${phone.stock} unidades en bodega'
+                  : 'Agotado temporalmente',
               style: TextStyle(
                 color: phone.stock > 0 ? AppColors.success : AppColors.danger,
                 fontWeight: FontWeight.w700,
@@ -425,7 +481,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         if (phone.stock > 0)
           Row(
             children: [
-              // Quantity Counter
+              // Quantity Counter with animated number
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0x1AFFFFFF),
@@ -436,12 +492,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove, size: 16),
-                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                      onPressed: _quantity > 1
+                          ? () => setState(() => _quantity--)
+                          : null,
                     ),
-                    Text('$_quantity', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      transitionBuilder: (child, anim) =>
+                          ScaleTransition(scale: anim, child: child),
+                      child: Text(
+                        '$_quantity',
+                        key: ValueKey<int>(_quantity),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 15),
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.add, size: 16),
-                      onPressed: _quantity < phone.stock ? () => setState(() => _quantity++) : null,
+                      onPressed: _quantity < phone.stock
+                          ? () => setState(() => _quantity++)
+                          : null,
                     ),
                   ],
                 ),
@@ -459,7 +529,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Agregado(s) $_quantity x ${phone.name}'),
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: AppColors.success, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                  'Agregado(s) $_quantity x ${phone.name}'),
+                            ),
+                          ],
+                        ),
+                        behavior: SnackBarBehavior.floating,
                         action: SnackBarAction(
                           label: 'Ir al carrito',
                           textColor: AppColors.accent,
@@ -471,9 +552,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.shopping_cart_outlined, size: 20, color: Colors.white),
+                      Icon(Icons.shopping_cart_outlined,
+                          size: 20, color: Colors.white),
                       SizedBox(width: 10),
-                      Text('AGREGAR AL CARRITO', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                      Text('AGREGAR AL CARRITO',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -508,7 +592,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       child: Text(
         text,
-        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 11),
+        style: TextStyle(
+            color: color, fontWeight: FontWeight.w700, fontSize: 11),
       ),
     );
   }
@@ -527,12 +612,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           const Text(
             '📋 Especificaciones Técnicas',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
           ),
           const SizedBox(height: 18),
           LayoutBuilder(
             builder: (context, constraints) {
-              final cols = constraints.maxWidth > 700 ? 3 : constraints.maxWidth > 450 ? 2 : 1;
+              final cols = constraints.maxWidth > 700
+                  ? 3
+                  : constraints.maxWidth > 450
+                      ? 2
+                      : 1;
               return GridView.count(
                 crossAxisCount: cols,
                 shrinkWrap: true,
@@ -541,16 +631,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
                 children: [
-                  _specTile('Procesador', phone.processor ?? 'Octa-Core de alto rendimiento'),
-                  _specTile('Pantalla', '${phone.screenSize ?? 6.7}" ${phone.screenType ?? 'OLED 120Hz'}'),
+                  _specTile('Procesador',
+                      phone.processor ?? 'Octa-Core de alto rendimiento'),
+                  _specTile('Pantalla',
+                      '${phone.screenSize ?? 6.7}" ${phone.screenType ?? 'OLED 120Hz'}'),
                   _specTile('Memoria RAM', '${phone.ramGb} GB'),
                   _specTile('Almacenamiento', '${phone.storageGb} GB'),
-                  _specTile('Color', phone.color.isNotEmpty ? phone.color : 'Estándar'),
-                  _specTile('Cámara Principal', '${phone.mainCameraMp ?? 50} MP'),
-                  _specTile('Cámara Frontal', '${phone.frontCameraMp ?? 12} MP'),
+                  _specTile('Color',
+                      phone.color.isNotEmpty ? phone.color : 'Estándar'),
+                  _specTile('Cámara Principal',
+                      '${phone.mainCameraMp ?? 50} MP'),
+                  _specTile('Cámara Frontal',
+                      '${phone.frontCameraMp ?? 12} MP'),
                   _specTile('Batería', '${phone.batteryMah ?? 5000} mAh'),
                   _specTile('Sistema Operativo', phone.os ?? 'Android / iOS'),
-                  _specTile('Conectividad', phone.is5g ? '5G Ultra + Wi-Fi 6' : '4G LTE + Wi-Fi'),
+                  _specTile('Conectividad',
+                      phone.is5g ? '5G Ultra + Wi-Fi 6' : '4G LTE + Wi-Fi'),
                 ],
               );
             },
@@ -572,13 +668,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textDim, fontSize: 11.5)),
+          Text(label,
+              style:
+                  const TextStyle(color: AppColors.textDim, fontSize: 11.5)),
           const SizedBox(height: 2),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
           ),
         ],
       ),
@@ -601,18 +700,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _trustItem('🚚 Envío Asegurado', 'A todas las ciudades de Colombia'),
-                    _trustItem('🛡️ Garantía 12 Meses', 'Directa e IMEI legal homologado'),
-                    _trustItem('🔒 Compra 100% Protegida', 'Pasarela segura con factura legal'),
+                    _trustItem('🚚 Envío Asegurado',
+                        'A todas las ciudades de Colombia'),
+                    _trustItem('🛡️ Garantía 12 Meses',
+                        'Directa e IMEI legal homologado'),
+                    _trustItem('🔒 Compra 100% Protegida',
+                        'Pasarela segura con factura legal'),
                   ],
                 )
               : Column(
                   children: [
-                    _trustItem('🚚 Envío Asegurado', 'A todas las ciudades de Colombia'),
+                    _trustItem('🚚 Envío Asegurado',
+                        'A todas las ciudades de Colombia'),
                     const SizedBox(height: 12),
-                    _trustItem('🛡️ Garantía 12 Meses', 'Directa e IMEI legal homologado'),
+                    _trustItem('🛡️ Garantía 12 Meses',
+                        'Directa e IMEI legal homologado'),
                     const SizedBox(height: 12),
-                    _trustItem('🔒 Compra 100% Protegida', 'Pasarela segura con factura legal'),
+                    _trustItem('🔒 Compra 100% Protegida',
+                        'Pasarela segura con factura legal'),
                   ],
                 );
         },
@@ -623,9 +728,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _trustItem(String title, String desc) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w800, fontSize: 13)),
+        Text(title,
+            style: const TextStyle(
+                color: AppColors.accent,
+                fontWeight: FontWeight.w800,
+                fontSize: 13)),
         const SizedBox(height: 2),
-        Text(desc, style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
+        Text(desc,
+            style:
+                const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
       ],
     );
   }
@@ -647,11 +758,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             children: [
               const Text(
                 '⭐ Reseñas de Clientes',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18),
               ),
               Text(
                 '${_reviews.length} opiniones',
-                style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                style:
+                    const TextStyle(color: AppColors.textMuted, fontSize: 13),
               ),
             ],
           ),
@@ -670,7 +785,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               children: [
                 const Text(
                   'Deja tu calificación sobre este smartphone:',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13.5),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -678,7 +796,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     final star = index + 1;
                     return IconButton(
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      constraints:
+                          const BoxConstraints(minWidth: 32, minHeight: 32),
                       icon: Icon(
                         star <= _rating ? Icons.star : Icons.star_border,
                         color: const Color(0xFFFBBF24),
@@ -693,14 +812,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   controller: _commentController,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                    hintText: '¿Qué te pareció el rendimiento, batería, cámara o acabados del teléfono?',
+                    hintText:
+                        '¿Qué te pareció el rendimiento, batería, cámara o acabados del teléfono?',
                   ),
                 ),
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: FilledButton(
-                    onPressed: _submitting ? null : () => _submitReview(phone.id),
+                  child: GradientButton(
+                    width: 160,
+                    height: 44,
+                    onPressed: _submitting
+                        ? null
+                        : () => _submitReview(phone.id),
                     child: Text(_submitting ? 'Publicando...' : 'Publicar Reseña'),
                   ),
                 ),
@@ -712,39 +836,53 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
           // Review List
           if (_reviewsLoading)
-            const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+            const Center(
+                child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: CircularProgressIndicator()))
           else if (_reviews.isEmpty)
             const Padding(
               padding: EdgeInsets.all(16),
               child: Center(
-                child: Text('Sé el primero en dejar una reseña para este equipo.', style: TextStyle(color: AppColors.textDim)),
+                child: Text(
+                    'Sé el primero en dejar una reseña para este equipo.',
+                    style: TextStyle(color: AppColors.textDim)),
               ),
             )
           else
             Column(
-              children: _reviews.map((r) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0x0FFFFFFF),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(r.userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5)),
-                        Text('⭐' * r.rating, style: const TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(r.comment, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                  ],
-                ),
-              )).toList(),
+              children: _reviews
+                  .map((r) => Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0x0FFFFFFF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(r.userName,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13.5)),
+                                Text('⭐' * r.rating,
+                                    style: const TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(r.comment,
+                                style: const TextStyle(
+                                    color: AppColors.textMuted, fontSize: 13)),
+                          ],
+                        ),
+                      ))
+                  .toList(),
             ),
         ],
       ),

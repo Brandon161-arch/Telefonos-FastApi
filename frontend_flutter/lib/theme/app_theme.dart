@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -12,6 +13,7 @@ class AppColors {
   static const border = Color(0x1AFFFFFF); // rgba(255, 255, 255, 0.1)
   static const borderLight = Color(0x2EFFFFFF);
   static const borderGlow = Color(0x596366F1); // rgba(99, 102, 241, 0.35)
+  static const borderGlowCyan = Color(0x5906B6D4);
 
   // Primary & Accents
   static const primary = Color(0xFF6366F1); // Indigo neon
@@ -75,7 +77,7 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: baseColorScheme,
       scaffoldBackgroundColor: AppColors.bgPrimary,
-      fontFamily: 'Roboto', // Fallback standard font
+      fontFamily: 'Roboto',
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xD90A0E17),
         elevation: 0,
@@ -169,7 +171,7 @@ class AppTheme {
   }
 }
 
-/// Helper widget to render text with a gradient shader (like in the Jinja design)
+/// Helper widget to render text with a gradient shader
 class GradientText extends StatelessWidget {
   const GradientText(
     this.text, {
@@ -258,8 +260,8 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Primary gradient button with hover/tap animations
-class GradientButton extends StatelessWidget {
+/// Interactive animated hover & tap gradient button
+class GradientButton extends StatefulWidget {
   const GradientButton({
     super.key,
     required this.onPressed,
@@ -280,41 +282,230 @@ class GradientButton extends StatelessWidget {
   final bool disabled;
 
   @override
+  State<GradientButton> createState() => _GradientButtonState();
+}
+
+class _GradientButtonState extends State<GradientButton> {
+  bool _hovered = false;
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        gradient: disabled ? null : gradient,
-        color: disabled ? const Color(0x33FFFFFF) : null,
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: disabled
-            ? null
-            : [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
+    final scale = _pressed ? 0.96 : (_hovered && !widget.disabled ? 1.02 : 1.0);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: widget.disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: scale,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutCubic,
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              gradient: widget.disabled ? null : widget.gradient,
+              color: widget.disabled ? const Color(0x33FFFFFF) : null,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              boxShadow: widget.disabled
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: _hovered ? 0.55 : 0.35),
+                        blurRadius: _hovered ? 18 : 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(widget.borderRadius),
+                onTap: widget.disabled ? null : widget.onPressed,
+                child: Center(
+                  child: DefaultTextStyle(
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                    child: widget.child,
+                  ),
                 ),
-              ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(borderRadius),
-          onTap: disabled ? null : onPressed,
-          child: Center(
-            child: DefaultTextStyle(
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
               ),
-              child: child,
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shimmer skeleton loading effect for smooth data loading states
+class ShimmerLoadingBox extends StatefulWidget {
+  const ShimmerLoadingBox({
+    super.key,
+    required this.width,
+    required this.height,
+    this.borderRadius = 12,
+  });
+
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  @override
+  State<ShimmerLoadingBox> createState() => _ShimmerLoadingBoxState();
+}
+
+class _ShimmerLoadingBoxState extends State<ShimmerLoadingBox>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: const [
+                Color(0xFF151D2E),
+                Color(0xFF222E46),
+                Color(0xFF151D2E),
+              ],
+              stops: [
+                math.max(0.0, _controller.value - 0.3),
+                _controller.value,
+                math.min(1.0, _controller.value + 0.3),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Floating breath animation (used for Hero Flagship phone)
+class FloatingPhoneWidget extends StatefulWidget {
+  const FloatingPhoneWidget({
+    super.key,
+    required this.child,
+    this.distance = 7.0,
+  });
+
+  final Widget child;
+  final double distance;
+
+  @override
+  State<FloatingPhoneWidget> createState() => _FloatingPhoneWidgetState();
+}
+
+class _FloatingPhoneWidgetState extends State<FloatingPhoneWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 3),
+  )..repeat(reverse: true);
+
+  late final Animation<double> _animation = Tween<double>(
+    begin: -widget.distance,
+    end: widget.distance,
+  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _animation.value),
+          child: widget.child,
+        );
+      },
+    );
+  }
+}
+
+/// Pulsing glow ring (used for active tracking step and badge highlights)
+class PulsingGlowRing extends StatefulWidget {
+  const PulsingGlowRing({
+    super.key,
+    required this.child,
+    this.glowColor = AppColors.accent,
+  });
+
+  final Widget child;
+  final Color glowColor;
+
+  @override
+  State<PulsingGlowRing> createState() => _PulsingGlowRingState();
+}
+
+class _PulsingGlowRingState extends State<PulsingGlowRing>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat(reverse: true);
+
+  late final Animation<double> _animation = Tween<double>(
+    begin: 2.0,
+    end: 10.0,
+  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.glowColor.withValues(alpha: 0.5),
+                blurRadius: _animation.value,
+                spreadRadius: _animation.value * 0.4,
+              ),
+            ],
+          ),
+          child: widget.child,
+        );
+      },
     );
   }
 }

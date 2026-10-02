@@ -65,8 +65,16 @@ class _TrackScreenState extends State<TrackScreen> {
                         decoration: BoxDecoration(
                           gradient: AppColors.primaryGradient,
                           borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.4),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: const Center(child: Text('📦', style: TextStyle(fontSize: 26))),
+                        child: const Center(
+                            child: Text('📦', style: TextStyle(fontSize: 26))),
                       ),
                       const SizedBox(height: 14),
                       const Text(
@@ -82,7 +90,8 @@ class _TrackScreenState extends State<TrackScreen> {
                       const Text(
                         'Ingresa el código de orden enviado a tu correo (ej. ORD-ABC123XYZ)',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textMuted, fontSize: 13.5),
+                        style: TextStyle(
+                            color: AppColors.textMuted, fontSize: 13.5),
                       ),
                     ],
                   ),
@@ -107,8 +116,10 @@ class _TrackScreenState extends State<TrackScreen> {
                           onSubmitted: (_) => _track(),
                           decoration: const InputDecoration(
                             hintText: 'ORD-XXXXXXXX',
-                            prefixIcon: Icon(Icons.local_shipping_outlined, color: AppColors.accent),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            prefixIcon: Icon(Icons.local_shipping_outlined,
+                                color: AppColors.accent),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
                           ),
                         ),
                       ),
@@ -131,24 +142,43 @@ class _TrackScreenState extends State<TrackScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.danger.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.danger.withValues(alpha: 0.5)),
+                      border: Border.all(
+                          color: AppColors.danger.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: AppColors.danger),
+                        const Icon(Icons.error_outline,
+                            color: AppColors.danger),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             _error!,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                // Order Result Card
-                if (_order != null) _buildOrderDetails(_order!),
+                // Order Result Card with Animated Entrance
+                if (_order != null)
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 350),
+                    tween: Tween<double>(begin: 0.0, end: 1.0),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, (1.0 - value) * 20),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _buildOrderDetails(_order!),
+                  ),
               ],
             ),
           ),
@@ -185,7 +215,9 @@ class _TrackScreenState extends State<TrackScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Número de Orden', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                  const Text('Número de Orden',
+                      style:
+                          TextStyle(color: AppColors.textDim, fontSize: 12)),
                   const SizedBox(height: 2),
                   Text(
                     order['order_number']?.toString() ?? '',
@@ -204,7 +236,7 @@ class _TrackScreenState extends State<TrackScreen> {
 
           const SizedBox(height: 24),
 
-          // 5-Step Order Timeline
+          // 4-Step Animated Timeline
           _buildTimeline(status),
 
           const SizedBox(height: 24),
@@ -212,18 +244,28 @@ class _TrackScreenState extends State<TrackScreen> {
           const SizedBox(height: 16),
 
           // Shipping & Customer Info
-          const Text('Detalles de Entrega', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+          const Text('Detalles de Entrega',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15)),
           const SizedBox(height: 10),
           _infoRow('Cliente', order['customer_name'] ?? 'Cliente ElectroPhone'),
-          _infoRow('Dirección', '${order['shipping_address'] ?? ''}, ${order['city'] ?? ''}'),
-          _infoRow('Pago', '${order['payment_method'] ?? ''} • ${order['payment_status'] ?? ''}'),
+          _infoRow('Dirección',
+              '${order['shipping_address'] ?? ''}, ${order['city'] ?? ''}'),
+          _infoRow('Pago',
+              '${order['payment_method'] ?? ''} • ${order['payment_status'] ?? ''}'),
 
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
 
           // Items List
-          const Text('Artículos Comprados', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+          const Text('Artículos Comprados',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15)),
           const SizedBox(height: 12),
           ...items.map((item) {
             final map = item as Map<String, dynamic>;
@@ -235,12 +277,16 @@ class _TrackScreenState extends State<TrackScreen> {
                   Expanded(
                     child: Text(
                       '${map['phone_name']} (x${map['quantity']})',
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 13.5),
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 13.5),
                     ),
                   ),
                   Text(
                     formatCop((map['subtotal'] as num?)?.toDouble() ?? 0),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5),
                   ),
                 ],
               ),
@@ -255,7 +301,11 @@ class _TrackScreenState extends State<TrackScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total Pagado', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+              const Text('Total Pagado',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16)),
               Text(
                 formatCop((order['total'] as num?)?.toDouble() ?? 0),
                 style: const TextStyle(
@@ -295,7 +345,9 @@ class _TrackScreenState extends State<TrackScreen> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: const Center(
-          child: Text('Este pedido ha sido cancelado.', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
+          child: Text('Este pedido ha sido cancelado.',
+              style: TextStyle(
+                  color: AppColors.danger, fontWeight: FontWeight.w700)),
         ),
       );
     }
@@ -306,9 +358,21 @@ class _TrackScreenState extends State<TrackScreen> {
           final stepIndex = index ~/ 2;
           final isCompleted = stepIndex < currentIndex;
           return Expanded(
-            child: Container(
-              height: 3,
-              color: isCompleted ? AppColors.primary : const Color(0x2EFFFFFF),
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 600),
+              tween: Tween<double>(begin: 0.0, end: isCompleted ? 1.0 : 0.0),
+              curve: Curves.easeInOut,
+              builder: (context, value, child) {
+                return Container(
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? AppColors.primary
+                        : const Color(0x2EFFFFFF),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                );
+              },
             ),
           );
         } else {
@@ -316,29 +380,33 @@ class _TrackScreenState extends State<TrackScreen> {
           final isPassed = stepIndex <= currentIndex;
           final isCurrent = stepIndex == currentIndex;
 
+          final circle = Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              gradient: isPassed ? AppColors.primaryGradient : null,
+              color: isPassed ? null : const Color(0x14FFFFFF),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isCurrent ? AppColors.accent : AppColors.border,
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                isPassed ? Icons.check : Icons.circle,
+                size: 14,
+                color: Colors.white,
+              ),
+            ),
+          );
+
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  gradient: isPassed ? AppColors.primaryGradient : null,
-                  color: isPassed ? null : const Color(0x14FFFFFF),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isCurrent ? AppColors.accent : AppColors.border,
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    isPassed ? Icons.check : Icons.circle,
-                    size: 14,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              isCurrent
+                  ? PulsingGlowRing(glowColor: AppColors.accent, child: circle)
+                  : circle,
               const SizedBox(height: 6),
               Text(
                 steps[stepIndex].$1,
@@ -363,10 +431,16 @@ class _TrackScreenState extends State<TrackScreen> {
         children: [
           SizedBox(
             width: 90,
-            child: Text(label, style: const TextStyle(color: AppColors.textDim, fontSize: 13)),
+            child: Text(label,
+                style:
+                    const TextStyle(color: AppColors.textDim, fontSize: 13)),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+            child: Text(value,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13)),
           ),
         ],
       ),
@@ -391,7 +465,8 @@ class _TrackScreenState extends State<TrackScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
       ),
     );
   }
