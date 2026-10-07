@@ -53,6 +53,13 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         // Necesario: el carrito y la sesion de login usan localStorage
         settings.setDomStorageEnabled(true);
+        // Respeta el <meta viewport> y ajusta el contenido al ancho real del telefono
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        // Evita el "font boosting" de Android, que agranda el texto y descoloca la vista
+        settings.setTextZoom(100);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
         // Toda la navegacion se queda dentro de la app (sin abrir el navegador)
         webView.setWebViewClient(new WebViewClient());
 
