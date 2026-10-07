@@ -1,0 +1,21 @@
+# Gradle
+.gradle/
+build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# APKs de salida (se regeneran en cada build)
+*.apk
+*.aab
+
+# Maquina local: ruta del SDK de Android
+local.properties
+
+# Codigo del backend copiado automaticamente por app/build.gradle (afterEvaluate).
+# NO se commitea: la fuente de verdad es ../app del proyecto original.
+app/src/main/python/app/

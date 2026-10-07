@@ -1,0 +1,18 @@
+# Dependencias Python para el build Android (las instala Chaquopy/pip).
+#
+# Identico a requirements.txt de la raiz del proyecto, con una sola diferencia:
+# uvicorn sin extras [standard]. Los extras (uvloop, httptools, websockets) son
+# extensiones nativas que no aportan nada corriendo en 127.0.0.1 dentro del
+# telefono, y solo añaden riesgo de que no exista wheel para Android.
+# uvicorn puro usa h11 (Python puro) y funciona igual.
+fastapi>=0.110.0
+uvicorn>=0.28.0
+sqlalchemy>=2.0.0
+pydantic>=2.6.0
+jinja2>=3.1.3
+python-multipart>=0.0.9
+aiofiles>=23.2.0
+bcrypt>=4.0.0
+python-jose[cryptography]>=3.3.0
+email-validator>=2.1.0
+python-dotenv>=1.0.0

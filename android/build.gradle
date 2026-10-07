@@ -1,0 +1,18 @@
+// Raiz del proyecto Android (Chaquopy).
+// Chaquopy 17.0 empaqueta Python 3.12 + las dependencias pip dentro del APK.
+plugins {
+    id "com.android.application" version "8.7.3" apply false
+    id "com.chaquo.python" version "17.0.0" apply false
+}
+
+// Los artefactos de build se guardan FUERA de OneDrive. OneDrive Files
+// On-Demand convierte los archivos y carpetas nuevos en placeholders
+// (reparse points) y Java/Gradle no puede borrarlos: todas las tareas que
+// limpian directorios fallarian con AccessDeniedException. La carpeta del
+// proyecto sigue dentro de OneDrive, pero solo se copia codigo fuente (lectura
+// sin problemas) y con reintentos (ver app/build.gradle).
+def offCloudBuild = new File(System.getProperty("user.home"), ".gradle-builds/telefonos-fastapi")
+layout.buildDirectory = new File(offCloudBuild, "root")
+subprojects {
+    layout.buildDirectory = new File(offCloudBuild, project.name)
+}

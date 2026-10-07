@@ -1,0 +1,115 @@
+plugins {
+    id "com.android.application"
+    id "com.chaquo.python"
+}
+
+// El backend FastAPI vive fuera de esta carpeta (../app del proyecto original).
+// Se copia al arbol de fuentes Python en la fase de configuracion (afterEvaluate),
+// es decir, antes de que Gradle ejecute cualquier tarea: asi Chaquopy siempre
+// empaqueta el codigo actualizado. Es el mismo patron que usa la demo oficial
+// de Chaquopy para copiar codigo antes del build.
+afterEvaluate {
+    def backendDir = file("$rootDir/../app")
+    if (!backendDir.isDirectory()) {
+        throw new GradleException(
+            "No se encontro el backend FastAPI en:\n  ${backendDir}\n" +
+            "La carpeta android/ debe permanecer dentro del proyecto original " +
+            "(junto a la carpeta app/).")
+    }
+
+    def srcTree = fileTree(backendDir).matching {
+        exclude "**/__pycache__/**"
+        exclude "**/*.pyc"
+        exclude "**/*.pyo"
+    }
+    def srcFiles = srcTree.files
+    def newest = srcFiles.isEmpty() ? 0 : srcFiles.collect { it.lastModified() }.max()
+    def fingerprint = "${srcFiles.size()}:${newest}"
+
+    def pythonAppDir = file("src/main/python/app")
+    def markerFile = new File(layout.buildDirectory.get().asFile, ".backend-sync")
+
+    // Si el backend no cambio desde la ultima copia, no hace nada (evita
+    // reescribir los archivos en cada configuracion y chocar con OneDrive).
+    if (markerFile.isFile() && markerFile.text.trim() == fingerprint
+            && pythonAppDir.isDirectory()) {
+        return
+    }
+
+    // Borrado con reintentos: OneDrive/antivirus pueden retener los archivos
+    // recien copiados un instante (AccessDeniedException en Windows).
+    boolean deleted = !pythonAppDir.exists()
+    for (int attempt = 1; attempt <= 10 && !deleted; attempt++) {
+        try {
+            delete(pythonAppDir)
+            deleted = true
+        } catch (Exception e) {
+            if (attempt == 10) {
+                logger.warn("No se pudo limpiar ${pythonAppDir} (${e.message}); " +
+                        "se sobreescribiran los archivos encima.")
+            } else {
+                Thread.sleep(700L)
+            }
+        }
+    }
+
+    copy {
+        from(backendDir) {
+            exclude "**/__pycache__/**"
+            exclude "**/*.pyc"
+            exclude "**/*.pyo"
+        }
+        into(pythonAppDir)
+    }
+
+    // Solo valida el marker si el borrado fue limpio; si no, se reintenta
+    // la proxima configuracion para eliminar archivos obsoletos.
+    if (deleted) {
+        markerFile.parentFile.mkdirs()
+        markerFile.text = fingerprint
+    }
+}
+
+android {
+    namespace "com.electrophone.store"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.electrophone.store"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+
+        // Solo 64 bits: Python 3.12 de Chaquopy no soporta armeabi-v7a.
+        // arm64-v8a = celulares actuales, x86_64 = emulador de Android Studio.
+        ndk {
+            abiFilters "arm64-v8a", "x86_64"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        // Debe coincidir con la version de Python instalada en la maquina de
+        // build (3.12). Chaquopy la usa para compilar el .pyc e instalar pip.
+        version = "3.12"
+
+        // La autodeteccion de Chaquopy (py launcher o python en PATH) no
+        // encuentra el Python de Microsoft Store (es un alias que Java reporta
+        // como inexistente), asi que se indica la ruta del Python 3.12 real
+        // instalado desde python.org.
+        buildPython("C:/Users/duart/AppData/Local/Programs/Python/Python312/python.exe")
+
+        pip {
+            // requirements.txt de esta misma carpeta (android/app/):
+            // identico al de la raiz, sin los extras [standard] de uvicorn.
+            install("-r", "requirements.txt")
+        }
+    }
+}
