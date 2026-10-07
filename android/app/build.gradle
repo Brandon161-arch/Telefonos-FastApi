@@ -110,6 +110,12 @@ chaquopy {
             // requirements.txt de esta misma carpeta (android/app/):
             // identico al de la raiz, sin los extras [standard] de uvicorn.
             install("-r", "requirements.txt")
+
+            // --find-links se pasa como opcion pip (no via -f en requirements)
+            // porque Chaquopy instala las ruedas nativas de los demas ABIs en
+            // una segunda pasada que NO vuelve a leer requirements.txt, pero si
+            // repite estas opciones en cada pasada.
+            options("--find-links", file("wheels").absolutePath)
         }
     }
 }

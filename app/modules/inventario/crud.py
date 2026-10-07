@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc, asc, func
@@ -79,15 +80,28 @@ def get_phones(
     if is_featured is not None:
         query = query.filter(Phone.is_featured == is_featured)
     if search:
-        search_filter = f"%{search.strip()}%"
-        query = query.filter(
-            or_(
-                Phone.name.ilike(search_filter),
-                Phone.description.ilike(search_filter),
-                Phone.processor.ilike(search_filter),
-                Phone.color.ilike(search_filter)
-            )
-        )
+        # Busqueda por tokens: cada palabra debe coincidir en algun campo.
+        # Cubre nombre, descripcion, procesador, color, tipo de pantalla, marca
+        # y capacidad (RAM/almacenamiento): "256", "256GB", "8 GB", "5G", etc.
+        for token in search.strip().split():
+            token = token.strip()
+            if not token or token.lower() in ("gb", "tb", "ram"):
+                continue
+            pattern = f"%{token}%"
+            conditions = [
+                Phone.name.ilike(pattern),
+                Phone.description.ilike(pattern),
+                Phone.processor.ilike(pattern),
+                Phone.color.ilike(pattern),
+                Phone.screen_type.ilike(pattern),
+                Phone.brand.has(Brand.name.ilike(pattern)),
+            ]
+            capacity_match = re.fullmatch(r"(\d+)\s*gb?", token, re.IGNORECASE)
+            if capacity_match:
+                capacity = int(capacity_match.group(1))
+                conditions.append(Phone.storage_gb == capacity)
+                conditions.append(Phone.ram_gb == capacity)
+            query = query.filter(or_(*conditions))
 
     total_count = query.count()
 

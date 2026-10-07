@@ -438,17 +438,51 @@ async function loadMoreCatalog() {
     }
 }
 
+function scrollCatalogIntoView() {
+    const el = document.querySelector('.catalog-container');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 function initSearch() {
     const searchInput = document.getElementById('search-input');
     if (!searchInput) return;
 
+    const onIndex = !!document.getElementById('products-grid');
+
+    // Si venimos de otra pagina con ?search=..., precargar el termino
+    if (onIndex) {
+        const urlSearch = new URLSearchParams(window.location.search).get('search');
+        if (urlSearch) {
+            searchInput.value = urlSearch;
+            activeFilters.search = urlSearch.trim();
+        }
+    }
+
     let debounceTimer;
     searchInput.addEventListener('input', (e) => {
+        if (!onIndex) return; // En otras paginas solo se navega con Enter
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             activeFilters.search = e.target.value.trim();
             loadCatalog();
+            scrollCatalogIntoView();
         }, 300);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const term = e.target.value.trim();
+        if (!onIndex) {
+            window.location.href = '/?search=' + encodeURIComponent(term);
+            return;
+        }
+        clearTimeout(debounceTimer);
+        activeFilters.search = term;
+        loadCatalog();
+        scrollCatalogIntoView();
     });
 }
 
@@ -577,7 +611,7 @@ async function openPhoneModal(phoneId) {
         const currentPrice = phone.discount_price || phone.price;
 
         content.innerHTML = `
-            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; padding: 2rem;">
+            <div class="phone-modal-grid">
                 <div style="text-align: center;">
                     <img src="${phone.image_url}" alt="${phone.name}" style="max-width: 100%; max-height: 320px; object-fit: contain; border-radius: var(--radius-md);">
                     <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
@@ -593,7 +627,7 @@ async function openPhoneModal(phoneId) {
                     <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;">${phone.description || 'Sin descripción.'}</p>
 
                     <h4 style="font-size: 1rem; color: #fff; margin-bottom: 0.8rem;">Especificaciones Técnicas:</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem;">
+                    <div class="specs-detail-grid" style="margin-bottom: 1.5rem;">
                         <div style="background: rgba(255,255,255,0.04); padding: 0.6rem; border-radius: 6px;">
                             <small style="color: var(--text-dim); display: block;">Procesador</small>
                             <strong>${phone.processor || 'N/A'}</strong>

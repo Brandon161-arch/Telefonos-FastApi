@@ -1,18 +1,36 @@
 # Dependencias Python para el build Android (las instala Chaquopy/pip).
 #
-# Identico a requirements.txt de la raiz del proyecto, con una sola diferencia:
-# uvicorn sin extras [standard]. Los extras (uvloop, httptools, websockets) son
-# extensiones nativas que no aportan nada corriendo en 127.0.0.1 dentro del
-# telefono, y solo añaden riesgo de que no exista wheel para Android.
-# uvicorn puro usa h11 (Python puro) y funciona igual.
+# Diferencias con requirements.txt de la raiz del proyecto:
+#
+# 1. uvicorn sin extras [standard]: uvloop/httptools/websockets son extensiones
+#    nativas que no aportan nada sirviendo en 127.0.0.1 dentro del telefono y
+#    solo añaden riesgo de que falte wheel para Android. uvicorn puro usa h11
+#    (Python puro) y funciona igual.
+#
+# 2. pydantic/pydantic-core y bcrypt fijados a las unicas versiones con rueda
+#    para Android (comentarios junto a cada uno).
+#
+# -f wheels: directorio de ruedas locales (android/app/wheels). La ruta es
+# relativa al directorio de trabajo de pip, que es android/app.
+-f wheels
+
 fastapi>=0.110.0
 uvicorn>=0.28.0
 sqlalchemy>=2.0.0
-pydantic>=2.6.0
+# pydantic 2.13.3 exige exactamente pydantic-core==2.46.3, que es la unica
+# version cp312 publicada por Eutalix/android-pydantic-core (incluida aqui en
+# wheels/). pydantic-core NO existe en el indice de Chaquopy ni en PyPI para
+# Android: todas sus versiones requieren rueda nativa (Rust) y aun no se
+# publican ruedas oficiales android (ver chaquo/chaquopy#1017).
+pydantic==2.13.3
+pydantic-core==2.46.3
 jinja2>=3.1.3
 python-multipart>=0.0.9
 aiofiles>=23.2.0
-bcrypt>=4.0.0
+# bcrypt: el indice de Chaquopy solo tiene la 3.2.2; la >=4.0.0 del
+# requirements original no existe para Android. La API usada por el proyecto
+# (hashpw, checkpw, gensalt en app/core/security.py) es identica.
+bcrypt==3.2.2
 python-jose[cryptography]>=3.3.0
 email-validator>=2.1.0
 python-dotenv>=1.0.0

@@ -12,6 +12,7 @@ captures/
 # APKs de salida (se regeneran en cada build)
 *.apk
 *.aab
+dist/
 
 # Maquina local: ruta del SDK de Android
 local.properties
