@@ -109,3 +109,11 @@ class ReviewResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FavoriteResponse(BaseModel):
+    id: int
+    phone_id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

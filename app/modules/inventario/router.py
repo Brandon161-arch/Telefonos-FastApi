@@ -5,14 +5,15 @@ from app.core.database import get_db
 from app.modules.inventario.schemas import (
     BrandResponse, BrandCreate, BrandUpdate,
     PhoneResponse, PhoneCreate, PhoneUpdate,
-    ReviewCreate, ReviewResponse
+    ReviewCreate, ReviewResponse, FavoriteResponse
 )
 from app.modules.inventario.crud import (
     get_brands, get_brand, get_brand_by_slug, create_brand, update_brand, delete_brand,
     get_phones, get_phone, get_phone_by_slug, create_phone, update_phone, delete_phone,
-    get_reviews, create_review, delete_review
+    get_reviews, create_review, delete_review,
+    get_favorites, get_favorite, add_favorite, remove_favorite
 )
-from app.modules.login.router import get_current_admin, get_current_user_optional
+from app.modules.login.router import get_current_admin, get_current_user_optional, get_current_user
 from app.modules.login.models import User
 
 router = APIRouter()
@@ -239,3 +240,46 @@ def remove_review(
 
 router.include_router(reviews_router)
 router.include_router(reviews_admin_router)
+
+# ==================== FAVORITES ====================
+
+favorites_router = APIRouter(prefix="/favorites", tags=["Favoritos"])
+
+@favorites_router.get("", response_model=List[PhoneResponse])
+def list_favorites(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Listar los celulares favoritos del usuario autenticado."""
+    favorites = get_favorites(db, user_id=current_user.id)
+    phones = [f.phone for f in favorites if f.phone is not None]
+    return phones
+
+@favorites_router.post("/{phone_id}", response_model=FavoriteResponse, status_code=status.HTTP_201_CREATED)
+def add_to_favorites(
+    phone_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Agregar un celular a favoritos."""
+    phone = get_phone(db, phone_id=phone_id)
+    if not phone:
+        raise HTTPException(status_code=404, detail="Teléfono no encontrado")
+    existing = get_favorite(db, user_id=current_user.id, phone_id=phone_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="Este teléfono ya está en tus favoritos")
+    return add_favorite(db, user_id=current_user.id, phone_id=phone_id)
+
+@favorites_router.delete("/{phone_id}")
+def remove_from_favorites(
+    phone_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Quitar un celular de favoritos."""
+    success = remove_favorite(db, user_id=current_user.id, phone_id=phone_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="El teléfono no está en tus favoritos")
+    return {"message": "Eliminado de favoritos"}
+
+router.include_router(favorites_router)

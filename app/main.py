@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import engine, Base, get_db, SessionLocal, migrate_sqlite_schema
 from app.core.seed import seed_database
+from app.core.rate_limit import RateLimitMiddleware
 from app.api.router import api_router
 from app.modules.inventario.crud import get_brands, get_phones, get_phone_by_slug
 from app.modules.ventas.models import Order
@@ -48,14 +49,32 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Rate limiting para mitigar fuerza bruta en autenticación
+app.add_middleware(RateLimitMiddleware, limit=10, window_seconds=60)
+
 # CORS configuration
+_cors_origins = settings.CORS_ORIGINS
+if _cors_origins.strip() == "*":
+    _allow_origins = ["*"]
+else:
+    # Limpia espacios y barras finales para que coincidan exactamente con el origen
+    _allow_origins = [
+        o.strip().rstrip("/")
+        for o in _cors_origins.split(",")
+        if o.strip()
+    ]
+_allow_credentials = _allow_origins != ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=_allow_origins,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Log de diagnóstico: muestra qué orígenes CORS se cargaron realmente
+print(f"[CORS] Orígenes permitidos: {_allow_origins} | credentials={_allow_credentials}")
 
 # Static files & Templates directory configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -76,6 +95,11 @@ def format_cop(value):
         return f"${value}"
 
 templates.env.filters["cop"] = format_cop
+
+@app.get("/health", tags=["Sistema"])
+def health_check():
+    """Endpoint de salud para el balanceador/proxy (Coolify health check)."""
+    return {"status": "ok"}
 
 # Register Master API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)

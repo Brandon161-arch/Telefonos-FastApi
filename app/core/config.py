@@ -33,4 +33,7 @@ class Settings:
     # URL pública de la app para construir el enlace de verificación
     APP_BASE_URL: str = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
 
+    # CORS: orígenes permitidos (separados por coma). "*" para permitir todos (solo desarrollo)
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")
+
 settings = Settings()

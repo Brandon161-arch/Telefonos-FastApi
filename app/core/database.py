@@ -49,5 +49,11 @@ def migrate_sqlite_schema():
     if "user_id" not in rcols:
         cur.execute("ALTER TABLE reviews ADD COLUMN user_id INTEGER REFERENCES users(id)")
 
+    # orders: columna tax (IVA 19% Colombia)
+    cur.execute("PRAGMA table_info(orders)")
+    ocols = {row[1] for row in cur.fetchall()}
+    if "tax" not in ocols:
+        cur.execute("ALTER TABLE orders ADD COLUMN tax FLOAT DEFAULT 0.0")
+
     conn.commit()
     conn.close()

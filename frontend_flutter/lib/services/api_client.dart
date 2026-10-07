@@ -62,6 +62,11 @@ class ApiClient {
     int limit = 12,
     String? search,
     int? brandId,
+    double? minPrice,
+    double? maxPrice,
+    int? ramGb,
+    int? storageGb,
+    bool? is5g,
     String sortBy = 'created_at',
   }) async {
     final query = <String, String>{
@@ -71,16 +76,34 @@ class ApiClient {
     };
     if (search != null && search.trim().isNotEmpty) query['search'] = search.trim();
     if (brandId != null) query['brand_id'] = '$brandId';
+    if (minPrice != null) query['min_price'] = '$minPrice';
+    if (maxPrice != null) query['max_price'] = '$maxPrice';
+    if (ramGb != null) query['ram_gb'] = '$ramGb';
+    if (storageGb != null) query['storage_gb'] = '$storageGb';
+    if (is5g != null) query['is_5g'] = '$is5g';
     final data = await _getMap('/phones', query: query);
     return (data['data'] as List<dynamic>)
         .map((item) => Phone.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
-  Future<int> getPhoneCount({String? search, int? brandId}) async {
+  Future<int> getPhoneCount({
+    String? search,
+    int? brandId,
+    double? minPrice,
+    double? maxPrice,
+    int? ramGb,
+    int? storageGb,
+    bool? is5g,
+  }) async {
     final query = <String, String>{'skip': '0', 'limit': '1'};
     if (search != null && search.trim().isNotEmpty) query['search'] = search.trim();
     if (brandId != null) query['brand_id'] = '$brandId';
+    if (minPrice != null) query['min_price'] = '$minPrice';
+    if (maxPrice != null) query['max_price'] = '$maxPrice';
+    if (ramGb != null) query['ram_gb'] = '$ramGb';
+    if (storageGb != null) query['storage_gb'] = '$storageGb';
+    if (is5g != null) query['is_5g'] = '$is5g';
     final data = await _getMap('/phones', query: query);
     return (data['total'] as num).toInt();
   }
@@ -185,6 +208,86 @@ class ApiClient {
       body: jsonEncode({'status': status}),
     );
     _decode(response);
+  }
+
+  Future<AdminMetrics> getAdminMetrics() async {
+    final response = await _client.get(_uri('/admin/metrics'), headers: await _headers(authenticated: true));
+    return AdminMetrics.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<Phone> createPhone(Map<String, dynamic> payload) async {
+    final response = await _client.post(
+      _uri('/phones'),
+      headers: await _headers(authenticated: true),
+      body: jsonEncode(payload),
+    );
+    return Phone.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<Phone> updatePhone(int phoneId, Map<String, dynamic> payload) async {
+    final response = await _client.put(
+      _uri('/phones/$phoneId'),
+      headers: await _headers(authenticated: true),
+      body: jsonEncode(payload),
+    );
+    return Phone.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<void> deletePhone(int phoneId) async {
+    final response = await _client.delete(
+      _uri('/phones/$phoneId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
+  Future<Brand> createBrand(Map<String, dynamic> payload) async {
+    final response = await _client.post(
+      _uri('/brands'),
+      headers: await _headers(authenticated: true),
+      body: jsonEncode(payload),
+    );
+    return Brand.fromJson(_decode(response) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteBrand(int brandId) async {
+    final response = await _client.delete(
+      _uri('/brands/$brandId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
+  Future<List<Phone>> getFavorites() async {
+    final response = await _client.get(_uri('/favorites'), headers: await _headers(authenticated: true));
+    return (_decode(response) as List<dynamic>)
+        .map((item) => Phone.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> addFavorite(int phoneId) async {
+    final response = await _client.post(
+      _uri('/favorites/$phoneId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
+  Future<void> removeFavorite(int phoneId) async {
+    final response = await _client.delete(
+      _uri('/favorites/$phoneId'),
+      headers: await _headers(authenticated: true),
+    );
+    _decode(response);
+  }
+
+  Future<Map<String, dynamic>> validateCoupon(String code, double subtotal) async {
+    final response = await _client.post(
+      _uri('/coupons/validate'),
+      headers: await _headers(),
+      body: jsonEncode({'code': code, 'subtotal': subtotal}),
+    );
+    return _decode(response) as Map<String, dynamic>;
   }
 
   Future<void> logout() async {

@@ -9,11 +9,13 @@ from app.core.config import settings
 from app.core.security import create_access_token, verify_password
 from app.modules.login.schemas import (
     UserCreate, UserResponse, Token, UserLogin,
-    VerifyEmailResponse, ResendVerificationRequest
+    VerifyEmailResponse, ResendVerificationRequest,
+    UserUpdate, UserDeleteResponse
 )
 from app.modules.login.crud import (
     get_user_by_email, create_user, authenticate_user, get_user,
-    get_user_by_verification_token, mark_user_verified, regenerate_verification_token
+    get_user_by_verification_token, mark_user_verified, regenerate_verification_token,
+    update_user, delete_user
 )
 from app.modules.login.models import User
 from app.modules.login.emails import send_verification_email
@@ -157,3 +159,21 @@ def resend_verification(payload: ResendVerificationRequest, db: Session = Depend
 @router.get("/me", response_model=UserResponse)
 def get_profile(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.put("/me", response_model=UserResponse)
+def update_profile(
+    user_in: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Actualiza el nombre, teléfono y dirección del usuario autenticado."""
+    return update_user(db, user=current_user, user_in=user_in)
+
+@router.delete("/me", response_model=UserDeleteResponse)
+def delete_own_account(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Elimina la cuenta del usuario autenticado."""
+    delete_user(db, user=current_user)
+    return {"message": "Tu cuenta fue eliminada correctamente."}

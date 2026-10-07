@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -21,6 +21,7 @@ class Order(Base):
     # Financials & Status
     subtotal = Column(Float, nullable=False)
     shipping_cost = Column(Float, default=0.0)
+    tax = Column(Float, default=0.0)
     discount_amount = Column(Float, default=0.0)
     total = Column(Float, nullable=False)
 
@@ -53,3 +54,17 @@ class OrderItem(Base):
     # Relationships
     order = relationship("Order", back_populates="items")
     phone = relationship("Phone", back_populates="order_items")
+
+
+class Coupon(Base):
+    __tablename__ = "coupons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, index=True, nullable=False)
+    discount_type = Column(String(20), default="percentage")  # 'percentage' o 'fixed'
+    discount_value = Column(Float, nullable=False)  # % (0-100) o monto fijo en COP
+    is_active = Column(Boolean, default=True)
+    max_uses = Column(Integer, default=100)     # 0 = ilimitado
+    used_count = Column(Integer, default=0)
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
