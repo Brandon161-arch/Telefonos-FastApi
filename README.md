@@ -78,13 +78,13 @@ npm run build
 
 ## Docker Compose
 
-Con Docker instalado y `.env` preparado:
+El Dockerfile raíz compila React y lo incluye en la misma imagen que FastAPI. Para probar esa imagen localmente, con Docker instalado y `.env` preparado:
 
 ```powershell
 docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 ```
 
-React queda en `http://localhost:5173` y FastAPI en `http://localhost:8000`. Nginx sirve React y reenvía `/api` al backend.
+La tienda React y la API quedan juntas en `http://localhost:8000`; la documentación de FastAPI está en `http://localhost:8000/docs`.
 
 ## Estructura relevante
 

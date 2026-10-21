@@ -1,8 +1,4 @@
 services:
-  backend:
+  app:
     ports:
       - "8000:8000"
-
-  frontend:
-    ports:
-      - "5173:80"

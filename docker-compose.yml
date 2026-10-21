@@ -1,13 +1,14 @@
 services:
-  backend:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY en las variables de Coolify}
-      # SQLite se persiste en el volumen backend_data.
       DATABASE_URL: sqlite:///./data/telefonos.db
+      PORT: "8000"
+      SERVE_FRONTEND: "true"
       FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:?Define FIRST_ADMIN_EMAIL en Coolify}
       FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:?Define FIRST_ADMIN_PASSWORD en Coolify}
       FRONTEND_URL: ${FRONTEND_URL:?Define FRONTEND_URL con el dominio de React}
@@ -23,16 +24,6 @@ services:
       - backend_data:/app/data
     expose:
       - "8000"
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - backend
-    expose:
-      - "80"
 
 volumes:
   backend_data:

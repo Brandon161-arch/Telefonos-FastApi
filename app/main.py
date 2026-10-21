@@ -1,7 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -77,9 +77,28 @@ print(f"[CORS] Orígenes permitidos: {_allow_origins} | credentials={_allow_cred
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 static_dir = os.path.join(BASE_DIR, "static")
 templates_dir = os.path.join(BASE_DIR, "templates")
+frontend_dist_dir = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist"))
+frontend_index = os.path.join(frontend_dist_dir, "index.html")
+serve_react = settings.SERVE_FRONTEND and os.path.isfile(frontend_index)
 
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+if serve_react and os.path.isdir(os.path.join(frontend_dist_dir, "assets")):
+    app.mount(
+        "/assets",
+        StaticFiles(directory=os.path.join(frontend_dist_dir, "assets")),
+        name="react-assets"
+    )
 templates = Jinja2Templates(directory=templates_dir)
+
+
+def render_page(request: Request, template_name: str, context: dict):
+    if serve_react:
+        return FileResponse(frontend_index, media_type="text/html")
+    return templates.TemplateResponse(
+        request=request,
+        name=template_name,
+        context=context
+    )
 
 def format_cop(value):
     """Formatea valores numéricos a pesos colombianos COP ($ 5.499.900)"""
@@ -105,66 +124,60 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.get("/", tags=["Frontend"])
 def render_storefront(request: Request, db: Session = Depends(get_db)):
     """Página principal de la tienda con catálogo interactivo y filtros"""
+    if serve_react:
+        return FileResponse(frontend_index, media_type="text/html")
     brands = get_brands(db)
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"brands": brands}
-    )
+    return render_page(request, "index.html", {"brands": brands})
 
 @app.get("/track", tags=["Frontend"])
 def render_tracking_page(request: Request):
     """Página de consulta y rastreo de órdenes de compra"""
-    return templates.TemplateResponse(
-        request=request,
-        name="track.html",
-        context={}
-    )
+    return render_page(request, "track.html", {})
 
 @app.get("/login", tags=["Frontend"])
 def render_login_page(request: Request):
     """Página de inicio de sesión y registro de clientes"""
-    return templates.TemplateResponse(
-        request=request,
-        name="login.html",
-        context={}
-    )
+    return render_page(request, "login.html", {})
 
 @app.get("/verify-email", tags=["Frontend"])
 def render_verify_email_page(request: Request, token: str = ""):
     """Página que procesa el token de verificación de correo"""
-    return templates.TemplateResponse(
-        request=request,
-        name="verify_email.html",
-        context={"token": token}
-    )
+    if serve_react:
+        return FileResponse(frontend_index, media_type="text/html")
+    return render_page(request, "verify_email.html", {"token": token})
 
 @app.get("/account", tags=["Frontend"])
 def render_account_page(request: Request):
     """Página de mi cuenta (perfil y órdenes del cliente autenticado)"""
-    return templates.TemplateResponse(
-        request=request,
-        name="account.html",
-        context={}
-    )
+    return render_page(request, "account.html", {})
 
 @app.get("/phone/{slug}", tags=["Frontend"])
 def render_phone_detail_page(slug: str, request: Request, db: Session = Depends(get_db)):
     """Página de detalle de un teléfono por slug (con especificaciones y reseñas)"""
+    if serve_react:
+        return FileResponse(frontend_index, media_type="text/html")
     phone = get_phone_by_slug(db, slug=slug)
     if not phone:
         from fastapi.responses import RedirectResponse
         return RedirectResponse("/", status_code=302)
-    return templates.TemplateResponse(
-        request=request,
-        name="phone_detail.html",
-        context={"phone": phone}
-    )
+    return render_page(request, "phone_detail.html", {"phone": phone})
 
 @app.get("/admin", tags=["Frontend"], include_in_schema=False)
 def redirect_legacy_admin():
     """Enviar el acceso del panel al frontend React, que protege la ruta."""
+    if serve_react:
+        return FileResponse(frontend_index, media_type="text/html")
     return RedirectResponse(
         url=f"{settings.FRONTEND_URL}/admin",
         status_code=307
     )
+
+
+if serve_react:
+    @app.get("/{frontend_path:path}", include_in_schema=False)
+    def react_spa_fallback(frontend_path: str):
+        """Devolver React para rutas de BrowserRouter no conocidas por FastAPI."""
+        requested_path = os.path.abspath(os.path.join(frontend_dist_dir, frontend_path))
+        if requested_path.startswith(frontend_dist_dir + os.sep) and os.path.isfile(requested_path):
+            return FileResponse(requested_path)
+        return FileResponse(frontend_index, media_type="text/html")
