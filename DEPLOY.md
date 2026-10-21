@@ -39,6 +39,10 @@ VERIFICATION_TOKEN_EXPIRE_HOURS=24
 
 Para generar `SECRET_KEY` en tu equipo puedes ejecutar `python -c "import secrets; print(secrets.token_urlsafe(48))"`. No uses las credenciales de ejemplo en producción.
 
+## Despliegue como aplicación Railpack (solo API)
+
+Si Coolify está configurado como recurso **Application/Railpack** en vez de Docker Compose, define **Ports Exposes = `8000`** y `PORT=8000`. El comando de inicio debe ser `uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`. Esta modalidad publica FastAPI y no compila ni sirve el frontend React; para la tienda React usa el recurso Docker Compose descrito arriba.
+
 ## Alcance actual
 
 - El checkout aún no integra un proveedor de pagos; los pedidos quedan con pago pendiente.
