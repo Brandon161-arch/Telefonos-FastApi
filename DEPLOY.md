@@ -11,7 +11,7 @@ Vite reenvía las rutas `/api` al backend. Para los enlaces de verificación usa
 
 ## Docker Compose
 
-`docker compose up --build` construye dos servicios: FastAPI y React estático servido por Nginx. Nginx reenvía `/api/` al servicio interno `backend`; React comparte origen con la API.
+El recurso Docker Compose construye dos servicios: FastAPI y React estático servido por Nginx. Nginx reenvía `/api/` al servicio interno `backend`; React comparte origen con la API. En Coolify asigna el dominio al servicio `frontend` y al puerto interno `80`. El backend debe quedar interno en `8000` salvo que quieras publicar `/docs`.
 
 En **Environment Variables** del recurso Compose, configura estas variables obligatorias:
 
@@ -35,13 +35,13 @@ SMTP_FROM_NAME=ElectroPhone Store
 VERIFICATION_TOKEN_EXPIRE_HOURS=24
 ```
 
-`DATABASE_URL` no se configura en Coolify: Compose usa SQLite y el volumen persistente `backend_data`. No configures `VITE_API_URL`: React usa el proxy `/api` de Nginx. En Coolify enruta el dominio de la tienda al servicio `frontend`, puerto del contenedor **80**. El servicio `backend` puede quedar interno; publica el puerto **8000** solo si necesitas acceder a `/docs` desde fuera.
+`DATABASE_URL` no se configura en Coolify: Compose usa SQLite y el volumen persistente `backend_data`. No configures `VITE_API_URL`: React usa el proxy `/api` de Nginx. `docker-compose.yml` solo expone los puertos dentro de la red de Compose; las publicaciones para probar en tu PC están en `docker-compose.local.yml`.
 
 Para generar `SECRET_KEY` en tu equipo puedes ejecutar `python -c "import secrets; print(secrets.token_urlsafe(48))"`. No uses las credenciales de ejemplo en producción.
 
 ## Despliegue como aplicación Railpack (solo API)
 
-Si Coolify está configurado como recurso **Application/Railpack** en vez de Docker Compose, define **Ports Exposes = `8000`** y `PORT=8000`. El comando de inicio debe ser `uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`. Esta modalidad publica FastAPI y no compila ni sirve el frontend React; para la tienda React usa el recurso Docker Compose descrito arriba.
+Si Coolify está configurado como recurso **Application/Railpack** en vez de Docker Compose, define el tipo de sitio como **Web Application**, **Ports Exposes = `8000`**, la variable `PORT=8000` y el dominio con puerto interno `8000`. El comando de inicio debe ser `uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`. Esta modalidad publica FastAPI y no compila ni sirve el frontend React; para la tienda React usa un recurso **Docker Compose** con `docker-compose.yml` y asigna el dominio al servicio `frontend`, puerto `80`.
 
 ## Alcance actual
 

@@ -81,7 +81,7 @@ npm run build
 Con Docker instalado y `.env` preparado:
 
 ```powershell
-docker compose up --build
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 ```
 
 React queda en `http://localhost:5173` y FastAPI en `http://localhost:8000`. Nginx sirve React y reenvía `/api` al backend.
