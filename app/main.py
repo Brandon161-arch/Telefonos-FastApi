@@ -1,6 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,11 +12,7 @@ from app.core.database import engine, Base, get_db, SessionLocal, migrate_sqlite
 from app.core.seed import seed_database
 from app.core.rate_limit import RateLimitMiddleware
 from app.api.router import api_router
-from app.modules.inventario.crud import get_brands, get_phones, get_phone_by_slug
-from app.modules.ventas.models import Order
-from app.modules.inventario.models import Phone, Brand
-from app.modules.login.models import User
-from sqlalchemy import func
+from app.modules.inventario.crud import get_brands, get_phone_by_slug
 
 # Ensure database tables exist and seed initial data
 @asynccontextmanager
@@ -164,30 +161,10 @@ def render_phone_detail_page(slug: str, request: Request, db: Session = Depends(
         context={"phone": phone}
     )
 
-@app.get("/admin", tags=["Frontend"])
-def render_admin_dashboard(request: Request, db: Session = Depends(get_db)):
-    """Panel de administración y control de inventario de celulares"""
-    total_sales = db.query(func.coalesce(func.sum(Order.total), 0.0)).scalar()
-    total_orders = db.query(Order).count()
-    total_phones = db.query(Phone).count()
-    total_brands = db.query(Brand).count()
-    
-    phones, _ = get_phones(db, limit=100)
-    brands = get_brands(db)
-
-    metrics = {
-        "total_revenue": total_sales,
-        "total_orders": total_orders,
-        "total_phones": total_phones,
-        "total_brands": total_brands
-    }
-
-    return templates.TemplateResponse(
-        request=request,
-        name="admin.html",
-        context={
-            "metrics": metrics,
-            "phones": phones,
-            "brands": brands
-        }
+@app.get("/admin", tags=["Frontend"], include_in_schema=False)
+def redirect_legacy_admin():
+    """Enviar el acceso del panel al frontend React, que protege la ruta."""
+    return RedirectResponse(
+        url=f"{settings.FRONTEND_URL}/admin",
+        status_code=307
     )

@@ -120,9 +120,9 @@ export default function CheckoutModal() {
             <div className="success-icon-wrap">
               <CheckCircle size={64} color="#10b981" />
             </div>
-            <h2>¡Tu pedido ha sido confirmado!</h2>
+            <h2>¡Recibimos tu pedido!</h2>
             <p className="success-subtitle">
-              Hemos enviado los detalles de tu compra y la factura a <strong>{createdOrder.customer_email}</strong>.
+              Esta versión local registra el pedido, pero no procesa cobros ni emite una factura.
             </p>
 
             <div className="order-number-card">
@@ -146,7 +146,7 @@ export default function CheckoutModal() {
                 <strong style={{ textTransform: 'uppercase' }}>{createdOrder.payment_method}</strong>
               </div>
               <div className="summary-item">
-                <span>Total pagado:</span>
+                <span>Total del pedido:</span>
                 <strong className="text-primary-color">{formatCOP(createdOrder.total)}</strong>
               </div>
             </div>
@@ -367,7 +367,7 @@ export default function CheckoutModal() {
 
               <div className="secure-badge">
                 <Shield size={16} color="#10b981" />
-                <span>Transacción segura y encriptada SSL 256-bit</span>
+                <span>Demo local: no se ha realizado ningún cobro</span>
               </div>
             </div>
           </div>

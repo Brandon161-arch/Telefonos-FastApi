@@ -73,7 +73,7 @@ export default function TrackPage() {
       <div className="track-hero-box glass">
         <Package size={42} color="#818cf8" />
         <h1>Rastreo de Envíos en Colombia</h1>
-        <p>Ingresa tu número de orden para consultar el estado de tu pedido en tiempo real.</p>
+          <p>Ingresa tu número de orden para consultar el estado y resumen de tu pedido.</p>
 
         <form onSubmit={handleSearchSubmit} className="track-search-form">
           <div className="track-input-wrap">
@@ -169,12 +169,9 @@ export default function TrackPage() {
             <div className="track-info-box">
               <div className="box-title">
                 <MapPin size={18} color="#818cf8" />
-                <h4>Dirección de Entrega</h4>
+                <h4>Ciudad de Entrega</h4>
               </div>
-              <p><strong>{order.customer_name}</strong></p>
-              <p>{order.shipping_address}</p>
-              <p>{order.city} {order.postal_code ? `· CP ${order.postal_code}` : ''}</p>
-              <p>📞 {order.customer_phone}</p>
+              <p>{order.city}, Colombia</p>
             </div>
 
             <div className="track-info-box">

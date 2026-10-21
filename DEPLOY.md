@@ -1,75 +1,46 @@
-# Despliegue en Coolify
+# Ejecución y despliegue con React + FastAPI
 
-Este proyecto tiene **backend (FastAPI)** y **frontend (Flutter)** en el mismo repositorio, desplegados como **servicios separados** en Coolify.
+## Desarrollo local
 
-## Arquitectura
+La tienda web React y la API FastAPI son dos procesos separados:
 
-```
-api.tudominio.com   ──►  backend  (FastAPI, puerto 8000)
-app.tudominio.com   ──►  frontend (Flutter web, nginx puerto 80)
-```
+1. En la raíz, instala Python, configura `.env` y arranca `python run.py` (API `127.0.0.1:8000`).
+2. En `frontend/`, ejecuta `npm ci` y `npm run dev` (React `localhost:5173`).
 
-El frontend Flutter se compila con la URL del backend quemada vía build-arg `API_BASE_URL`.
+Vite reenvía las rutas `/api` al backend. Para los enlaces de verificación usa `FRONTEND_URL=http://localhost:5173`.
 
-## Opción A: Docker Compose en Coolify
+## Docker Compose
 
-1. En Coolify crea un nuevo recurso tipo **Docker Compose**.
-2. Apunta al repositorio y elige la rama `main`.
-3. Configura las variables de entorno (o crea el archivo `.env`):
+`docker compose up --build` construye dos servicios: FastAPI y React estático servido por Nginx. Nginx reenvía `/api/` al servicio interno `backend`; React comparte origen con la API.
+
+En **Environment Variables** del recurso Compose, configura estas variables obligatorias:
 
 ```env
-SECRET_KEY=una-clave-segura-larga-y-aleatoria
-APP_BASE_URL=https://api.tudominio.com
-API_BASE_URL=https://api.tudominio.com/api/v1
+SECRET_KEY=<clave-aleatoria-larga>
+FIRST_ADMIN_EMAIL=<correo-administrador>
+FIRST_ADMIN_PASSWORD=<contraseña-segura>
+FRONTEND_URL=https://app.tudominio.com
 CORS_ORIGINS=https://app.tudominio.com
-SMTP_HOST=smtp.gmail.com
+```
+
+Para activar correo de verificación y confirmaciones, añade también:
+
+```env
+SMTP_HOST=<servidor-smtp>
 SMTP_PORT=587
-SMTP_USER=tu.correo@gmail.com
-SMTP_PASSWORD=tu-clave-de-app
-SMTP_FROM_EMAIL=tu.correo@gmail.com
+SMTP_USER=<usuario-smtp>
+SMTP_PASSWORD=<contraseña-de-aplicacion>
+SMTP_FROM_EMAIL=<correo-remitente>
 SMTP_FROM_NAME=ElectroPhone Store
-FIRST_ADMIN_EMAIL=admin@electrophone.com
-FIRST_ADMIN_PASSWORD=admin123456
+VERIFICATION_TOKEN_EXPIRE_HOURS=24
 ```
 
-4. En **Proxy/Domains**:
-   - `backend` → dominio `api.tudominio.com`, puerto `8000`.
-   - `frontend` → dominio `app.tudominio.com`, puerto `80`.
+`DATABASE_URL` no se configura en Coolify: Compose usa SQLite y el volumen persistente `backend_data`. No configures `VITE_API_URL`: React usa el proxy `/api` de Nginx. En Coolify enruta el dominio de la tienda al servicio `frontend`, puerto del contenedor **80**. El servicio `backend` puede quedar interno; publica el puerto **8000** solo si necesitas acceder a `/docs` desde fuera.
 
-## Opción B: Dos recursos "Application"
+Para generar `SECRET_KEY` en tu equipo puedes ejecutar `python -c "import secrets; print(secrets.token_urlsafe(48))"`. No uses las credenciales de ejemplo en producción.
 
-1. **Recurso 1 (backend)**:
-   - Tipo: `Dockerfile`
-   - `Dockerfile location`: `/Dockerfile`
-   - `Build context`: `/`
-   - Variables de entorno: las mismas de arriba (sin `API_BASE_URL`).
-   - Domain: `api.tudominio.com` → puerto `8000`.
+## Alcance actual
 
-2. **Recurso 2 (frontend)**:
-   - Tipo: `Dockerfile`
-   - `Dockerfile location`: `/frontend_flutter/Dockerfile`
-   - `Build context`: `/frontend_flutter`
-   - Build args: `API_BASE_URL=https://api.tudominio.com/api/v1`
-   - Domain: `app.tudominio.com` → puerto `80`.
-
-## Notas importantes
-
-- **CORS**: en producción, pon `CORS_ORIGINS=https://app.tudominio.com` (no `*`).
-- **`API_BASE_URL`**: es la URL **pública** del backend. Si cambia, hay que recompilar el frontend.
-- **SQLite**: los datos se guardan en un volumen Docker (`backend_data`). Para persistencia real en producción considera migrar a PostgreSQL (solo cambia `DATABASE_URL`).
-- **Email**: usa la contraseña de aplicación de Gmail (no tu contraseña normal) si usas Gmail.
-
-## Construir localmente para probar
-
-```bash
-# Backend
-docker build -t electrophone-backend .
-
-# Frontend (ajusta la URL del backend)
-docker build -t electrophone-frontend \
-  --build-arg API_BASE_URL=http://localhost:8000/api/v1 \
-  ./frontend_flutter
-
-# Todo junto
-docker compose up --build
-```
+- El checkout aún no integra un proveedor de pagos; los pedidos quedan con pago pendiente.
+- Para correo de verificación y confirmaciones, configura SMTP.
+- Flutter y Android siguen en el repositorio como clientes heredados; el despliegue web documentado usa React.

@@ -16,6 +16,11 @@ env/
 # Frontend Flutter (se construye en su propio Dockerfile)
 frontend_flutter/
 
+# El backend no necesita el frontend React; este tiene su propio contexto Docker.
+frontend/
+android/
+desktop/
+
 # Tests
 tests/
 .pytest_cache/
