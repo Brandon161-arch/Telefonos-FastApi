@@ -10,6 +10,7 @@ WORKDIR /app
 # Instalar dependencias (usa cache por capas)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN mkdir -p /app/data
 
 # Copiar código de la app
 COPY app ./app

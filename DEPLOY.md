@@ -43,6 +43,8 @@ Para generar `SECRET_KEY` en tu equipo puedes ejecutar `python -c "import secret
 
 Si Coolify está configurado como recurso **Application/Railpack** en vez de Docker Compose, define el tipo de sitio como **Web Application**, **Ports Exposes = `8000`**, la variable `PORT=8000` y el dominio con puerto interno `8000`. El comando de inicio debe ser `uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`. Esta modalidad publica FastAPI y no compila ni sirve el frontend React; para la tienda React usa un recurso **Docker Compose** con `docker-compose.yml` y asigna el dominio al servicio `frontend`, puerto `80`.
 
+Si despliegas solamente el `Dockerfile` como una aplicación Coolify y configuras `DATABASE_URL=sqlite:///./data/telefonos.db`, monta un volumen persistente en `/app/data`; el directorio se crea en la imagen, pero sin ese volumen la base se pierde al reemplazar el contenedor.
+
 ## Alcance actual
 
 - El checkout aún no integra un proveedor de pagos; los pedidos quedan con pago pendiente.
